@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商品開発プロジェクト進捗管理</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230086CC'/%3E%3Cpath d='M8 22V13.5L16 8l8 5.5V22h-5v-6h-6v6H8z' fill='white'/%3E%3C/svg%3E">
+<style>
+:root{
+  --brand-50:#e6f4fb;--brand-100:#cce9f7;--brand-400:#33a7df;--brand-500:#0086cc;--brand-600:#006ba3;--brand-700:#00507a;
+  --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;--slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;--slate-800:#1e293b;
+  --emerald-50:#ecfdf5;--emerald-100:#d1fae5;--emerald-500:#10b981;--emerald-600:#059669;--emerald-700:#047857;--emerald-800:#065f46;
+  --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-700:#b45309;--amber-800:#92400e;
+  --red-50:#fef2f2;--red-100:#fee2e2;--red-500:#ef4444;--red-600:#dc2626;--red-700:#b91c1c;
+  --violet-50:#f5f3ff;--violet-500:#8b5cf6;--violet-700:#6d28d9;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:"Hiragino Sans","Yu Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--slate-50);color:var(--slate-800);font-size:14px;}
+h1,h2,h3,p{margin:0;}
+button{font-family:inherit;}
+.app-shell{display:flex;min-height:100vh;}
+.sidebar{width:240px;flex-shrink:0;background:#fff;border-right:1px solid var(--slate-200);display:flex;flex-direction:column;}
+.sidebar-header{display:flex;align-items:center;gap:10px;padding:20px;border-bottom:1px solid var(--slate-200);}
+.sidebar-logo{width:36px;height:36px;border-radius:8px;background:var(--brand-500);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+.sidebar-title{font-size:14px;font-weight:600;color:var(--slate-800);margin:0;}
+.sidebar-subtitle{font-size:11px;color:var(--slate-400);margin:2px 0 0;}
+.sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;border:none;background:none;text-align:left;font-size:14px;font-weight:500;color:var(--slate-600);cursor:pointer;width:100%;}
+.nav-item:hover{background:var(--slate-50);}
+.nav-item.active{background:var(--brand-50);color:var(--brand-700);}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;}
+.main-content{flex:1;overflow-y:auto;}
+.page-container{max-width:1280px;margin:0 auto;padding:32px 24px;}
+.page-header{margin-bottom:24px;}
+.page-header h1{font-size:20px;font-weight:700;color:var(--slate-800);}
+.page-desc{margin-top:4px;font-size:13px;color:var(--slate-500);}
+.page-header-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
+
+.card{background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+.card-title{font-size:14px;font-weight:600;color:var(--slate-700);}
+.card-subtitle{margin-top:2px;font-size:12px;color:var(--slate-400);}
+.card-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:16px;}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+@media (max-width:900px){.grid-3{grid-template-columns:1fr;}}
+@media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+
+.section-gap{margin-top:24px;}
+.ws-card-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.dot{width:8px;height:8px;border-radius:999px;flex-shrink:0;display:inline-block;}
+.stat-big{font-size:26px;font-weight:700;color:var(--slate-800);margin-bottom:8px;}
+.stat-sub{margin-top:8px;font-size:12px;color:var(--slate-400);}
+.progress-track{height:8px;background:var(--slate-100);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:999px;}
+
+.stat-box{background:var(--slate-50);border-radius:8px;padding:14px;}
+.stat-box-label{font-size:12px;font-weight:500;color:var(--slate-500);}
+.stat-box-value{margin-top:8px;font-size:22px;font-weight:700;color:var(--slate-800);}
+.stat-box-value .unit{margin-left:4px;font-size:12px;font-weight:400;color:var(--slate-400);}
+.stat-box-sub{margin-top:4px;font-size:11px;color:var(--slate-400);}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;white-space:nowrap;}
+.badge-dot{width:6px;height:6px;border-radius:999px;flex-shrink:0;display:inline-block;}
+.muted-text{font-size:11px;color:var(--slate-400);}
+
+.empty-note{padding:24px 0;text-align:center;font-size:13px;color:var(--slate-400);}
+
+.deadline-list{list-style:none;margin:0;padding:0;}
+.deadline-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--slate-100);}
+.deadline-item:first-child{border-top:none;}
+.deadline-title{font-size:13px;font-weight:500;color:var(--slate-700);}
+.deadline-tags{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+.deadline-date{flex-shrink:0;font-size:13px;font-weight:600;color:var(--slate-600);white-space:nowrap;}
+.deadline-date.overdue{color:var(--red-600);}
+.overdue-note{font-size:11px;font-weight:400;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;}
+.btn-primary{background:var(--brand-500);color:#fff;}
+.btn-primary:hover{background:var(--brand-600);}
+.btn-secondary{background:#fff;border-color:var(--slate-300);color:var(--slate-600);}
+.btn-secondary:hover{background:var(--slate-50);}
+.btn-danger{background:#fff;border-color:var(--red-100);color:var(--red-600);}
+.btn-danger:hover{background:var(--red-50);}
+.icon-btn{border:none;background:none;color:var(--slate-400);cursor:pointer;padding:6px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;}
+.icon-btn:hover{background:var(--slate-100);color:var(--slate-600);}
+
+.toggle-group{display:flex;border:1px solid var(--slate-300);border-radius:8px;padding:2px;background:#fff;}
+.toggle-btn{border:none;background:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;color:var(--slate-500);cursor:pointer;}
+.toggle-btn.active{background:var(--brand-500);color:#fff;}
+
+.filter-bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:16px;margin-bottom:20px;}
+.filter-field{width:170px;}
+.filter-label{display:block;font-size:11px;font-weight:500;color:var(--slate-600);margin-bottom:4px;}
+.link-btn{background:none;border:none;color:var(--brand-600);font-size:12px;font-weight:500;cursor:pointer;padding-bottom:8px;}
+.link-btn:hover{text-decoration:underline;}
+
+.label{display:block;font-size:12px;font-weight:500;color:var(--slate-600);margin-bottom:4px;}
+.input,select.input,textarea.input{width:100%;padding:8px 12px;border:1px solid var(--slate-300);border-radius:8px;font-size:13px;font-family:inherit;color:var(--slate-700);background:#fff;}
+.input:focus{outline:2px solid var(--brand-100);border-color:var(--brand-500);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:14px;}
+.field{margin-bottom:14px;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.4);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px rgba(0,0,0,0.2);}
+.modal.modal-wide{max-width:680px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.modal-header h2{font-size:16px;font-weight:600;color:var(--slate-800);}
+.modal-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;}
+.modal-footer-right{display:flex;gap:8px;}
+
+.kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media (max-width:1100px){.kanban-board{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:640px){.kanban-board{grid-template-columns:1fr;}}
+.kanban-column{background:rgba(241,245,249,0.7);border-radius:12px;padding:12px;min-height:160px;}
+.kanban-column-header{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:10px;}
+.kanban-column-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--slate-700);}
+.kanban-count{background:#fff;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:500;color:var(--slate-500);}
+.kanban-column.drag-over{background:var(--brand-50);}
+.kanban-card{background:#fff;border:1px solid var(--slate-200);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.03);}
+.kanban-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.kanban-card.dragging{opacity:0.4;}
+.kanban-card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;}
+.kanban-card-title{font-size:13px;font-weight:500;color:var(--slate-800);}
+.kanban-card-desc{margin-top:4px;font-size:11px;color:var(--slate-500);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.kanban-card-footer{margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.kanban-card-due{margin-top:8px;font-size:11px;font-weight:500;color:var(--slate-400);}
+.kanban-card-due.overdue{color:var(--red-600);}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--slate-200);border-radius:12px;background:#fff;}
+table{width:100%;border-collapse:collapse;font-size:13px;text-align:left;}
+thead{background:var(--slate-50);border-bottom:1px solid var(--slate-200);}
+th{padding:12px 16px;font-size:11px;font-weight:500;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.02em;}
+td{padding:12px 16px;border-top:1px solid var(--slate-100);color:var(--slate-600);}
+tbody tr{cursor:pointer;}
+tbody tr:hover{background:var(--slate-50);}
+.cell-strong{font-weight:500;color:var(--slate-700);}
+
+.meeting-card + .meeting-card{margin-top:16px;}
+.meeting-date{font-size:11px;font-weight:500;color:var(--slate-400);}
+.meeting-title{margin-top:2px;font-size:15px;font-weight:600;color:var(--slate-800);}
+.meeting-participants{margin-top:4px;font-size:11px;color:var(--slate-400);}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:var(--slate-400);margin-bottom:8px;}
+.decision-list{list-style:none;margin:0 0 16px;padding:0;}
+.decision-item{display:flex;gap:8px;font-size:13px;color:var(--slate-600);padding:3px 0;}
+.decision-bullet{margin-top:6px;width:6px;height:6px;border-radius:999px;background:var(--brand-400);flex-shrink:0;}
+.next-action-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--slate-100);}
+.next-action-item:first-child{border-top:none;}
+.next-action-text-btn{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:none;border:none;text-align:left;cursor:pointer;padding:0;}
+.next-action-text{font-size:13px;color:var(--slate-700);}
+.next-action-text.done{color:var(--slate-400);text-decoration:line-through;}
+.task-ify-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;border:1px solid var(--slate-200);background:#fff;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:500;color:var(--brand-600);cursor:pointer;}
+.task-ify-btn:hover{background:var(--brand-50);}
+.task-ify-done{flex-shrink:0;font-size:11px;color:var(--slate-400);}
+.check-icon{width:18px;height:18px;flex-shrink:0;}
+
+.next-action-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.next-action-row .input{flex:1;}
+
+.reference-list{list-style:none;margin:0;padding:0;}
+.reference-list li{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 0;}
+.reference-list .rlabel{color:var(--slate-600);}
+.reference-list .rvalue{font-weight:500;color:var(--slate-800);}
+.reference-list .rnote{margin-left:4px;font-size:11px;font-weight:400;color:var(--slate-400);}
+.benchmark-notes{margin-top:14px;border-top:1px solid var(--slate-100);padding-top:12px;}
+.benchmark-notes p{font-size:11px;color:var(--slate-400);margin-bottom:4px;}
+
+.preview-box{border:1px solid var(--slate-200);background:var(--slate-50);border-radius:8px;padding:14px;margin-bottom:14px;}
+.preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.preview-header p{font-size:11px;font-weight:600;color:var(--slate-500);}
+.preview-score{font-size:11px;color:var(--slate-400);margin-bottom:6px;}
+.preview-reasons{list-style:none;margin:0;padding:0;}
+.preview-reasons li{font-size:11px;color:var(--slate-500);padding:2px 0;}
+
+.warn-box{display:flex;gap:8px;background:var(--amber-50);color:var(--amber-800);border-radius:8px;padding:10px;font-size:11px;margin-bottom:12px;}
+.msg-success{color:var(--emerald-600);font-size:13px;margin-top:8px;}
+.msg-error{color:var(--red-600);font-size:13px;margin-top:8px;}
+
+.bubble-chart-wrap{width:100%;overflow-x:auto;}
+.bubble-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;justify-content:center;}
+.bubble-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--slate-600);}
+.bubble-legend-dot{width:10px;height:10px;border-radius:999px;display:inline-block;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="import-file-input" accept="application/json,.json" style="display:none">
+<script>
+'use strict';
+
+/* ============================== ユーティリティ ============================== */
+function escapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+function createId(prefix){
+  var rand = (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0,8);
+  return prefix + '-' + rand;
+}
+var WEEKDAY_JA = ['日','月','火','水','木','金','土'];
+function parseLocalDate(iso){
+  var parts = iso.split('-').map(Number);
+  return new Date(parts[0], (parts[1]||1)-1, parts[2]||1);
+}
+function startOfToday(){
+  var d = new Date(); d.setHours(0,0,0,0); return d;
+}
+function formatDateJP(iso){
+  if (!iso) return '未設定';
+  var d = parseLocalDate(iso);
+  return (d.getMonth()+1) + '/' + d.getDate() + '(' + WEEKDAY_JA[d.getDay()] + ')';
+}
+function formatDateLongJP(iso){
+  if (!iso) return '未設定';
+  var d = parseLocalDate(iso);
+  return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日(' + WEEKDAY_JA[d.getDay()] + ')';
+}
+function daysUntil(iso){
+  if (!iso) return null;
+  var d = parseLocalDate(iso); d.setHours(0,0,0,0);
+  return Math.round((d.getTime() - startOfToday().getTime()) / 86400000);
+}
+function isOverdue(iso){
+  var diff = daysUntil(iso);
+  return diff !== null && diff < 0;
+}
+function todayISO(){
+  var d = new Date();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var day = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+/* ============================== 色・ラベル定義 ============================== */
+var COLORS = {
+  brand50:'#e6f4fb', brand100:'#cce9f7', brand500:'#0086cc', brand600:'#006ba3', brand700:'#00507a',
+  slate50:'#f8fafc', slate100:'#f1f5f9', slate400:'#94a3b8', slate500:'#64748b', slate600:'#475569',
+  emerald50:'#ecfdf5', emerald100:'#d1fae5', emerald500:'#10b981', emerald600:'#059669', emerald700:'#047857', emerald800:'#065f46',
+  amber50:'#fffbeb', amber100:'#fef3c7', amber500:'#f59e0b', amber700:'#b45309', amber800:'#92400e',
+  red50:'#fef2f2', red100:'#fee2e2', red500:'#ef4444', red600:'#dc2626', red700:'#b91c1c',
+  violet50:'#f5f3ff', violet500:'#8b5cf6', violet700:'#6d28d9'
+};
+
+var WORKSTREAM_ORDER = ['product-dev','project-25oku','nationwide-survey'];
+var WORKSTREAM_LABELS = {
+  'product-dev':'① 商品開発',
+  'project-25oku':'② 25億プロジェクト',
+  'nationwide-survey':'③ 全国一次産品調査'
+};
+var WORKSTREAM_COLORS = {
+  'product-dev':{bg:COLORS.brand50,text:COLORS.brand700,dot:COLORS.brand500},
+  'project-25oku':{bg:COLORS.violet50,text:COLORS.violet700,dot:COLORS.violet500},
+  'nationwide-survey':{bg:COLORS.emerald50,text:COLORS.emerald700,dot:COLORS.emerald500}
+};
+
+var PRODUCT_DEV_AXIS_ORDER = ['realtime','local-strength','mid-long-term'];
+var PRODUCT_DEV_AXIS_LABELS = {
+  'realtime':'リアルタイムでの売れ筋商品開発',
+  'local-strength':'ローカルの強み・地域特性を活かした提案',
+  'mid-long-term':'中長期的な売れ筋商品開発'
+};
+
+var TASK_STATUS_ORDER = ['not-started','in-progress','in-review','done'];
+var TASK_STATUS_LABELS = {'not-started':'未着手','in-progress':'進行中','in-review':'レビュー中','done':'完了'};
+var TASK_STATUS_COLORS = {
+  'not-started':{bg:COLORS.slate100,text:COLORS.slate600,dot:COLORS.slate400},
+  'in-progress':{bg:COLORS.brand50,text:COLORS.brand700,dot:COLORS.brand500},
+  'in-review':{bg:COLORS.amber50,text:COLORS.amber700,dot:COLORS.amber500},
+  'done':{bg:COLORS.emerald50,text:COLORS.emerald700,dot:COLORS.emerald500}
+};
+
+var TASK_PRIORITY_ORDER = ['high','medium','low'];
+var TASK_PRIORITY_LABELS = {'high':'高','medium':'中','low':'低'};
+var TASK_PRIORITY_COLORS = {
+  'high':{bg:COLORS.red50,text:COLORS.red700,dot:COLORS.red500},
+  'medium':{bg:COLORS.amber50,text:COLORS.amber700,dot:COLORS.amber500},
+  'low':{bg:COLORS.slate100,text:COLORS.slate500,dot:COLORS.slate400}
+};
+
+var PRODUCT_GENRE_ORDER = ['米・雑穀','フルーツ','野菜','肉・畜産','水産','飲料・水','加工品','その他'];
+var MARKET_SIZE_CATEGORY_ORDER = ['特大','かなり大','大','中小'];
+
+var CATEGORY_STATUS_ORDER = ['調査中','提案準備','提案済','却下','採用'];
+var CATEGORY_STATUS_COLORS = {
+  '調査中':{bg:COLORS.slate100,text:COLORS.slate600,dot:COLORS.slate400},
+  '提案準備':{bg:COLORS.brand50,text:COLORS.brand700,dot:COLORS.brand500},
+  '提案済':{bg:COLORS.violet50,text:COLORS.violet700,dot:COLORS.violet500},
+  '却下':{bg:COLORS.red50,text:COLORS.red700,dot:COLORS.red500},
+  '採用':{bg:COLORS.emerald50,text:COLORS.emerald700,dot:COLORS.emerald500}
+};
+
+var RECOMMENDATION_COLORS = {
+  '◎':{bg:COLORS.emerald100,text:COLORS.emerald800,dot:COLORS.emerald500},
+  '○':{bg:COLORS.brand100,text:COLORS.brand700,dot:COLORS.brand500},
+  '△':{bg:COLORS.amber100,text:COLORS.amber800,dot:COLORS.amber500},
+  '×':{bg:COLORS.red100,text:COLORS.red700,dot:COLORS.red500},
+  'データ不足':{bg:COLORS.slate100,text:COLORS.slate500,dot:COLORS.slate400}
+};
+var RECOMMENDATION_HEX = {'◎':COLORS.emerald600,'○':COLORS.brand500,'△':COLORS.amber500,'×':COLORS.red500,'データ不足':COLORS.slate400};
+var RECOMMENDATION_SORT_WEIGHT = {'◎':4,'○':3,'△':2,'×':1,'データ不足':0};
+var RECOMMENDATION_CHART_ORDER = ['◎','○','△','×'];
+
+/* ============================== 参入推奨度ロジック(純粋関数) ============================== */
+var MARKET_SIZE_SCORES = {'特大':2,'かなり大':1.5,'大':1,'中小':0};
+var MARKET_SIZE_REASONS = {
+  '特大':'市場規模が特大のため、成功時のインパクトが大きい市場です。',
+  'かなり大':'市場規模がかなり大きく、インパクトが期待できる市場です。',
+  '大':'市場規模は大きく、一定のインパクトが期待できます。',
+  '中小':'市場規模は中小のため、成功してもインパクトは限定的です。'
+};
+var STRENGTH_GENRES = ['米・雑穀','フルーツ','野菜'];
+
+function calcEntryEaseScore(topSharePercent, topCompanyCount, reasons){
+  if (topSharePercent >= 15){
+    reasons.push('トップシェア' + topSharePercent + '%は15%以上で独占感が強く、参入障壁が高い水準です。');
+    return -2;
+  }
+  if (topSharePercent >= 10){
+    reasons.push('トップシェア' + topSharePercent + '%はやや寡占気味で、勝率が下がりやすい水準です。');
+    return -1;
+  }
+  if (topSharePercent >= 5){
+    if (topCompanyCount !== undefined && topCompanyCount >= 5 && topCompanyCount <= 10){
+      reasons.push('トップシェア' + topSharePercent + '%かつ上位' + topCompanyCount + '社に分散しており、狙い目のバランスです。');
+      return 2;
+    }
+    reasons.push('トップシェア' + topSharePercent + '%は狙い目レンジ(5〜10%)ですが、上位社数の分散度合いが想定と異なります。');
+    return 1;
+  }
+  reasons.push('トップシェア' + topSharePercent + '%は5%未満で乱立傾向があり、価格競争でコストパフォーマンスが悪化しやすい水準です。');
+  return -2;
+}
+function calcMarketSizeScore(marketSizeCategory, reasons){
+  reasons.push(MARKET_SIZE_REASONS[marketSizeCategory]);
+  return MARKET_SIZE_SCORES[marketSizeCategory];
+}
+function calcStrengthFitScore(genre, reasons){
+  if (STRENGTH_GENRES.indexOf(genre) !== -1){
+    reasons.push('「' + genre + '」は自社「くまもと風土」の強み(米・柑橘・野菜)に合致するジャンルです。');
+    return 1;
+  }
+  if (genre === '水産'){
+    reasons.push('水産は中長期課題と位置づけられており、現時点では優先度を下げています。');
+    return -1;
+  }
+  return 0;
+}
+function calcProcessingConstraintScore(hasProcessingConstraint, reasons){
+  if (hasProcessingConstraint){
+    reasons.push('東北・北海道等からの原料輸送が必要でロット確保・原価面の制約があります。');
+    return -1;
+  }
+  return 0;
+}
+function scoreToRecommendation(totalScore){
+  if (totalScore >= 4) return '◎';
+  if (totalScore >= 2) return '○';
+  if (totalScore >= 0) return '△';
+  return '×';
+}
+function evaluateMarketEntry(input){
+  if (input.topSharePercent === undefined || input.marketSizeCategory === undefined){
+    return {
+      recommendation:'データ不足', totalScore:null,
+      breakdown:{entryEaseScore:null, marketSizeScore:null, strengthFitScore:0, processingConstraintScore:0},
+      reasons:['市場規模区分とトップシェア%の両方が入力されると、参入推奨度を判定できます。']
+    };
+  }
+  var reasons = [];
+  var entryEaseScore = calcEntryEaseScore(input.topSharePercent, input.topCompanyCount, reasons);
+  var marketSizeScore = calcMarketSizeScore(input.marketSizeCategory, reasons);
+  var strengthFitScore = calcStrengthFitScore(input.genre, reasons);
+  var processingConstraintScore = calcProcessingConstraintScore(input.hasProcessingConstraint, reasons);
+  var totalScore = entryEaseScore + marketSizeScore + strengthFitScore + processingConstraintScore;
+  return {
+    recommendation: scoreToRecommendation(totalScore),
+    totalScore: totalScore,
+    breakdown:{entryEaseScore:entryEaseScore, marketSizeScore:marketSizeScore, strengthFitScore:strengthFitScore, processingConstraintScore:processingConstraintScore},
+    reasons: reasons
+  };
+}
+
+/* ============================== 初期シードデータ ============================== */
+var SEED_TS = '2026-07-01T09:00:00+09:00';
+
+var seedMembers = [
+  {id:'member-yamano', name:'山野さん', areas:['25億プロジェクト','米']},
+  {id:'member-yoshiyoshi', name:'吉吉さん', areas:['野菜','フルーツ']},
+  {id:'member-shigemoto', name:'重本さん', areas:['メール便配送の加工品']},
+  {id:'member-matsui', name:'松井さん', areas:['肉・加工品']},
+  {id:'member-umeda', name:'梅田さん', areas:['全般ジャンル','進捗管理','全国一次産品調査']},
+  {id:'member-kuraoka', name:'倉岡さん', areas:['全般ジャンル','レクチャー']}
+];
+
+var seedProductCategories = [
+  {id:'category-gyudon-butadon', name:'牛丼・豚丼の素', genre:'肉・畜産', hasProcessingConstraint:false,
+    memo:'会議で挙がった候補。市場規模・トップシェア・上位社数はまだ未調査(要リサーチ)。松井さんが市場調査を進行中。',
+    status:'調査中', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'category-sakuranbo', name:'さくらんぼ', genre:'フルーツ', hasProcessingConstraint:false,
+    memo:'フルーツ・野菜の未参入カテゴリーとして優先度高。産地ヒアリングを吉吉さんが進行中。市場規模・シェアは未調査。',
+    status:'調査中', createdAt:SEED_TS, updatedAt:SEED_TS}
+];
+
+var marketSizeReferences = [
+  {id:'ref-suisan', label:'水産全体', oku:800},
+  {id:'ref-kome', label:'米・雑穀', oku:500},
+  {id:'ref-beverage', label:'飲料・水(上位3〜5位)', oku:250, note:'200〜300億円のレンジ'},
+  {id:'ref-kani', label:'カニ', oku:100},
+  {id:'ref-saba', label:'サバ', oku:55, note:'50〜60億円のレンジ'}
+];
+var marketSizeBenchmarkNotes = [
+  '「特大・大」の目安: 100億円規模',
+  '第1階層(中小の基準): 年間約10億円規模'
+];
+
+var seedTasks = [
+  {id:'task-01', title:'楽天市場 売れ筋ランキング定点観測の仕組み構築', description:'リアルタイムで売れ筋を把握するため、ランキングを定期的にウォッチする運用フローを整備する。', workstream:'product-dev', productDevAxis:'realtime', assigneeId:'member-umeda', status:'in-progress', dueDate:'2026-07-24', priority:'high', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-02', title:'直近1ヶ月の売れ筋カテゴリーリストアップ', description:'直近の売れ筋カテゴリーを洗い出し、次の商品開発候補の材料とする。', workstream:'product-dev', productDevAxis:'realtime', assigneeId:'member-kuraoka', status:'done', dueDate:'2026-07-10', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-03', title:'牛丼・豚丼の素の市場調査・競合分析', description:'トップシェア・上位社数・市場規模を調査し、参入推奨度を判定できる状態にする。', workstream:'product-dev', productDevAxis:'realtime', assigneeId:'member-matsui', status:'in-progress', dueDate:'2026-07-23', priority:'high', relatedCategoryId:'category-gyudon-butadon', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-04', title:'さくらんぼ商品化に向けた産地ヒアリング', description:'産地・仕入れルートの実現性をヒアリングし、市場規模・シェアの調査につなげる。', workstream:'product-dev', productDevAxis:'local-strength', assigneeId:'member-yoshiyoshi', status:'in-progress', dueDate:'2026-07-30', priority:'high', relatedCategoryId:'category-sakuranbo', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-05', title:'くまもと風土ブランドの柑橘ラインナップ拡充案', description:'柑橘は自社の強みジャンル。既存ラインナップに追加できる候補を検討する。', workstream:'product-dev', productDevAxis:'local-strength', assigneeId:'member-yoshiyoshi', status:'not-started', dueDate:'2026-08-14', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-06', title:'地域特性を活かした新規提案候補の洗い出し', description:'ローカルの強みを活かせる新規カテゴリー候補をブレインストーミングする。', workstream:'product-dev', productDevAxis:'local-strength', assigneeId:'member-kuraoka', status:'in-review', dueDate:'2026-07-21', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-07', title:'水産カテゴリーの中長期ロードマップ策定', description:'水産は中長期課題。時間軸を長めに見たロードマップの叩き台を作る。', workstream:'product-dev', productDevAxis:'mid-long-term', assigneeId:'member-umeda', status:'not-started', dueDate:'2026-09-30', priority:'low', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-08', title:'米加工品の中長期ラインナップ検討', description:'米は自社の強みジャンル。中長期で狙える加工品ラインナップ案を検討する。', workstream:'product-dev', productDevAxis:'mid-long-term', assigneeId:'member-yamano', status:'not-started', dueDate:'2026-09-15', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-09', title:'25億プロジェクト 進捗管理シート整備', description:'全社共有用に進捗管理シートのフォーマットを整備する。', workstream:'project-25oku', assigneeId:'member-umeda', status:'in-progress', dueDate:'2026-07-20', priority:'high', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-10', title:'米カテゴリーの仕入れ先候補リスト作成', description:'25億プロジェクトの中核となる米カテゴリーの仕入れ先候補を洗い出す。', workstream:'project-25oku', assigneeId:'member-yamano', status:'in-progress', dueDate:'2026-07-22', priority:'high', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-11', title:'25億プロジェクト 月次レビュー会議設定', description:'1〜2ヶ月単位でアタック→数ヶ月単位で見直す方針に沿って、月次レビューの場を設定する。', workstream:'project-25oku', assigneeId:'member-yamano', status:'not-started', dueDate:'2026-07-31', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-12', title:'全国一次産品調査 対象地域の優先順位付け', description:'調査対象とする地域・産品の優先順位を整理する。', workstream:'nationwide-survey', assigneeId:'member-umeda', status:'in-progress', dueDate:'2026-07-21', priority:'high', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-13', title:'メール便配送に適した加工品の全国調査', description:'重本さんの担当領域であるメール便配送加工品を中心に、全国の一次産品候補を調査する。', workstream:'nationwide-survey', assigneeId:'member-shigemoto', status:'not-started', dueDate:'2026-08-08', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-14', title:'肉・加工品ジャンルの一次産品情報収集', description:'肉・加工品ジャンルにおける全国の一次産品情報を収集する。', workstream:'nationwide-survey', assigneeId:'member-matsui', status:'not-started', dueDate:'2026-08-19', priority:'low', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-15', title:'全国一次産品調査レポート第1版まとめ', description:'ここまでの調査結果を第1版レポートとして取りまとめる。', workstream:'nationwide-survey', assigneeId:'member-umeda', status:'in-review', dueDate:'2026-07-19', priority:'high', createdAt:SEED_TS, updatedAt:SEED_TS},
+  {id:'task-16', title:'飲料・水カテゴリーの初期スクリーニング', description:'飲料・水カテゴリーについて、参入余地があるか初期スクリーニングを行う。', workstream:'product-dev', productDevAxis:'realtime', assigneeId:'member-kuraoka', status:'not-started', dueDate:'2026-07-15', priority:'medium', createdAt:SEED_TS, updatedAt:SEED_TS}
+];
+
+var seedMeetings = [
+  {id:'meeting-2026-07-17', date:'2026-07-17', title:'楽天×商品管理部会議',
+    participants:['梅田さん','倉岡さん','楽天担当者'],
+    decisions:[
+      '市場選定基準に合意(市場規模区分×トップシェアによる参入推奨度の考え方)',
+      'バブルチャート形式で市場規模を共有する',
+      'フルーツ・野菜の未参入カテゴリーから着手する',
+      '1〜2ヶ月単位でアタックし、数ヶ月単位で見直す'
+    ],
+    nextActions:[
+      {id:'next-action-01', text:'フルーツ・野菜ジャンルの未参入カテゴリー候補をリストアップする', done:false},
+      {id:'next-action-02', text:'商品カテゴリー評価用の市場規模・シェアデータの収集を開始する', done:false},
+      {id:'next-action-03', text:'1ヶ月後(8/17頃)に進捗レビューの場を設定する', done:false}
+    ]}
+];
+
+/* ============================== データ永続化(localStorage) ============================== */
+var STORAGE_KEY = 'product-dev-tracker:data:v1';
+function seedAppData(){
+  return {members:seedMembers, tasks:seedTasks, productCategories:seedProductCategories, meetings:seedMeetings};
+}
+function loadData(){
+  var raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw){
+    var seeded = seedAppData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+    return seeded;
+  }
+  try{
+    var parsed = JSON.parse(raw);
+    return {
+      members: parsed.members || seedMembers,
+      tasks: parsed.tasks || [],
+      productCategories: parsed.productCategories || [],
+      meetings: parsed.meetings || []
+    };
+  }catch(e){
+    console.error('保存データの読み込みに失敗したため、初期データを使用します', e);
+    return seedAppData();
+  }
+}
+function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      members: appData.members, tasks: appData.tasks,
+      productCategories: appData.productCategories, meetings: appData.meetings
+    }));
+  }catch(e){}
+  if (spEnabled){
+    spSaveRemote().catch(function(e){ console.warn('SharePoint保存に失敗しました', e); setSyncStatus('error'); });
+  }
+}
+
+/* ============================== SharePoint 同期（既存フローを間借り） ============================== */
+var SP_GET_URL = "https://default068cc3d366e24ec6b40a2b8f99e440.3a.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/08/workflows/df76e889c59d4261b6f72465506202ff/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YyYlkrRbpvf4eY7AUEqjhMkytECW9igg6KUFwaBwQFw";
+var SP_SAVE_URL = "https://default068cc3d366e24ec6b40a2b8f99e440.3a.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/20/workflows/824fdd23704a4e75be4f020572b0aa0c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EXT6Slf3IWnABzEH6MiUn4FZbKIhMhCoQ8vuzFlWlQE";
+var SP_TASK_ID = 9000;
+var SP_POLL_INTERVAL_MS = 5000;
+var spEnabled = false;
+var spPollTimer = null;
+
+function setSyncStatus(state){
+  var el = document.getElementById('sync-status');
+  if (!el) return;
+  var map = {
+    online: '🟢 SharePoint同期中',
+    offline: '⚪ ローカル保存のみ（SharePoint未接続）',
+    error: '🔴 SharePoint接続エラー（ローカル保存のみで継続）',
+    syncing: '🔄 SharePointと同期しています…'
+  };
+  el.textContent = map[state] || '';
+}
+function currentPayload(){
+  return {members: appData.members, tasks: appData.tasks, productCategories: appData.productCategories, meetings: appData.meetings};
+}
+function spFetchAll(){
+  return fetch(SP_GET_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})})
+    .then(function(res){ if (!res.ok) throw new Error('fetch failed: '+res.status); return res.json(); });
+}
+function spSaveRemote(){
+  return fetch(SP_SAVE_URL, {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({taskId: SP_TASK_ID, title:'ProductDevTrackerData', dataJson: JSON.stringify(currentPayload())})})
+    .then(function(res){ if (!res.ok) throw new Error('save failed: '+res.status); });
+}
+function findRemoteRecord(items){
+  var match = items.filter(function(r){ return r.TaskId === SP_TASK_ID; })[0];
+  return match ? JSON.parse(match.DataJson) : null;
+}
+function applyRemoteData(remoteData){
+  appData.members = remoteData.members || [];
+  appData.tasks = remoteData.tasks || [];
+  appData.productCategories = remoteData.productCategories || [];
+  appData.meetings = remoteData.meetings || [];
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(currentPayload())); }catch(e){}
+}
+function initSharePointSync(){
+  setSyncStatus('syncing');
+  spFetchAll().then(function(items){
+    var remoteData = findRemoteRecord(items);
+    if (remoteData){
+      applyRemoteData(remoteData);
+      return null;
+    }
+    return spSaveRemote();
+  }).then(function(){
+    spEnabled = true;
+    setSyncStatus('online');
+    render();
+    if (!spPollTimer) spPollTimer = setInterval(pollSharePoint, SP_POLL_INTERVAL_MS);
+  }).catch(function(e){
+    spEnabled = false;
+    setSyncStatus('offline');
+    console.warn('SharePoint同期が利用できません。ローカル保存のみで動作します。', e);
+  });
+}
+function pollSharePoint(){
+  if (!spEnabled) return;
+  spFetchAll().then(function(items){
+    var remoteData = findRemoteRecord(items);
+    if (!remoteData) return;
+    var remoteStr = JSON.stringify(remoteData);
+    var localStr = JSON.stringify(currentPayload());
+    if (remoteStr !== localStr){
+      applyRemoteData(remoteData);
+      render();
+    }
+    setSyncStatus('online');
+  }).catch(function(){ setSyncStatus('error'); });
+}
+function downloadDataAsJson(){
+  var now = new Date();
+  var stamp = [now.getFullYear(), now.getMonth()+1, now.getDate()].map(function(n){return String(n).padStart(2,'0');}).join('');
+  var payload = {members:appData.members, tasks:appData.tasks, productCategories:appData.productCategories, meetings:appData.meetings};
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = 'product-dev-tracker-' + stamp + '.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+function isValidAppData(v){
+  return v && typeof v === 'object' && Array.isArray(v.members) && Array.isArray(v.tasks) && Array.isArray(v.productCategories) && Array.isArray(v.meetings);
+}
+function readDataFromJsonFile(file){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var parsed = JSON.parse(String(reader.result));
+        if (!isValidAppData(parsed)){
+          reject(new Error('ファイルの形式が正しくありません(members/tasks/productCategories/meetingsが必要です)'));
+          return;
+        }
+        resolve(parsed);
+      }catch(e){
+        reject(new Error('JSONの解析に失敗しました。ファイル内容を確認してください'));
+      }
+    };
+    reader.onerror = function(){ reject(new Error('ファイルの読み込みに失敗しました')); };
+    reader.readAsText(file);
+  });
+}
+
+/* ============================== アプリ状態 ============================== */
+var appData = loadData();
+var ui = {
+  page: 'dashboard',
+  taskViewMode: 'kanban',
+  taskFilters: {workstream:'', assigneeId:'', status:'', dueBefore:''},
+  taskModal: null,
+  categorySortMode: 'recommendation',
+  categoryModal: null,
+  meetingModal: null,
+  dataMessage: null
+};
+var draggedTaskId = null;
+
+function getMemberName(id){
+  var m = appData.members.filter(function(x){return x.id===id;})[0];
+  return m ? m.name : '未割当';
+}
+function getCategoryName(id){
+  var c = appData.productCategories.filter(function(x){return x.id===id;})[0];
+  return c ? c.name : '';
+}
+
+/* ============================== CRUD ============================== */
+function addTask(input, fromNextAction){
+  var now = new Date().toISOString();
+  var task = Object.assign({}, input, {id:createId('task'), createdAt:now, updatedAt:now});
+  appData.tasks.push(task);
+  if (fromNextAction){
+    var meeting = appData.meetings.filter(function(m){return m.id===fromNextAction.meetingId;})[0];
+    if (meeting){
+      var na = meeting.nextActions.filter(function(n){return n.id===fromNextAction.nextActionId;})[0];
+      if (na){ na.linkedTaskId = task.id; na.done = true; }
+    }
+  }
+  saveData();
+}
+function updateTask(id, patch){
+  var task = appData.tasks.filter(function(t){return t.id===id;})[0];
+  if (!task) return;
+  Object.assign(task, patch, {updatedAt:new Date().toISOString()});
+  saveData();
+}
+function deleteTask(id){
+  appData.tasks = appData.tasks.filter(function(t){return t.id!==id;});
+  saveData();
+}
+function addCategory(input){
+  var now = new Date().toISOString();
+  var cat = Object.assign({}, input, {id:createId('category'), createdAt:now, updatedAt:now});
+  appData.productCategories.push(cat);
+  saveData();
+}
+function updateCategory(id, patch){
+  var cat = appData.productCategories.filter(function(c){return c.id===id;})[0];
+  if (!cat) return;
+  Object.assign(cat, patch, {updatedAt:new Date().toISOString()});
+  saveData();
+}
+function deleteCategory(id){
+  appData.productCategories = appData.productCategories.filter(function(c){return c.id!==id;});
+  saveData();
+}
+function addMeeting(input){
+  var meeting = Object.assign({}, input, {id:createId('meeting')});
+  appData.meetings.push(meeting);
+  saveData();
+}
+function updateMeeting(id, patch){
+  var meeting = appData.meetings.filter(function(m){return m.id===id;})[0];
+  if (!meeting) return;
+  Object.assign(meeting, patch);
+  saveData();
+}
+function deleteMeeting(id){
+  appData.meetings = appData.meetings.filter(function(m){return m.id!==id;});
+  saveData();
+}
+function toggleNextAction(meetingId, nextActionId){
+  var meeting = appData.meetings.filter(function(m){return m.id===meetingId;})[0];
+  if (!meeting) return;
+  var na = meeting.nextActions.filter(function(n){return n.id===nextActionId;})[0];
+  if (!na) return;
+  na.done = !na.done;
+  saveData();
+}
+
+/* ============================== 共通レンダリング部品 ============================== */
+function renderBadge(label, color){
+  return '<span class="badge" style="background:'+color.bg+';color:'+color.text+'"><span class="badge-dot" style="background:'+color.dot+'"></span>'+escapeHtml(label)+'</span>';
+}
+function optionsHtml(items, selectedValue, placeholder){
+  var html = '';
+  if (placeholder !== undefined){
+    html += '<option value=""' + (selectedValue==='' ? ' selected' : '') + '>' + escapeHtml(placeholder) + '</option>';
+  }
+  items.forEach(function(item){
+    var value = typeof item === 'string' ? item : item.value;
+    var label = typeof item === 'string' ? item : item.label;
+    html += '<option value="'+escapeHtml(value)+'"'+(value===selectedValue?' selected':'')+'>'+escapeHtml(label)+'</option>';
+  });
+  return html;
+}
+
+var ICONS = {
+  dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  tasks:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="5" height="13" rx="1"/></svg>',
+  categories:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>',
+  meetings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4z"/><line x1="8" y1="8" x2="15" y2="8"/><line x1="8" y1="12" x2="15" y2="12"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="7.8" y2="16.2"/><line x1="16.2" y1="7.8" x2="19.1" y2="4.9"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  checkCircle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>',
+  circle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
+  download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  clipboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>'
+};
+
+/* ============================== ページ全体レンダリング ============================== */
+function render(){
+  var root = document.getElementById('app');
+  root.innerHTML = '<div class="app-shell">' + renderSidebar() + '<main class="main-content"><div class="page-container">' + renderPage() + '</div></main></div>' + renderModals();
+  if (ui.categoryModal) onCategoryFieldChange();
+}
+function renderSidebar(){
+  var items = [
+    {id:'dashboard', label:'ダッシュボード', icon:ICONS.dashboard},
+    {id:'tasks', label:'タスク管理', icon:ICONS.tasks},
+    {id:'categories', label:'商品カテゴリー評価', icon:ICONS.categories},
+    {id:'meetings', label:'会議・議事録', icon:ICONS.meetings},
+    {id:'settings', label:'データ管理', icon:ICONS.settings}
+  ];
+  var navHtml = items.map(function(item){
+    return '<button type="button" class="nav-item ' + (ui.page===item.id?'active':'') + '" data-action="nav" data-page="'+item.id+'">'+item.icon+'<span>'+item.label+'</span></button>';
+  }).join('');
+  return '<aside class="sidebar">' +
+    '<div class="sidebar-header"><p class="sidebar-title">商品管理部 MDプロジェクト</p><p class="sidebar-subtitle" id="sync-status" style="margin-top:6px;"></p></div>' +
+    '<nav class="sidebar-nav">' + navHtml + '</nav>' +
+  '</aside>';
+}
+function renderPage(){
+  if (ui.page === 'tasks') return renderTasksPage();
+  if (ui.page === 'categories') return renderCategoriesPage();
+  if (ui.page === 'meetings') return renderMeetingsPage();
+  if (ui.page === 'settings') return renderSettingsPage();
+  return renderDashboard();
+}
+function renderModals(){
+  var html = '';
+  if (ui.taskModal) html += renderTaskModal();
+  if (ui.categoryModal) html += renderCategoryModal();
+  if (ui.meetingModal) html += renderMeetingModal();
+  return html;
+}
+
+/* ============================== ダッシュボード ============================== */
+function renderDashboard(){
+  var tasks = appData.tasks;
+  var workstreamCards = WORKSTREAM_ORDER.map(function(ws){
+    var wsTasks = tasks.filter(function(t){return t.workstream===ws;});
+    var done = wsTasks.filter(function(t){return t.status==='done';}).length;
+    var total = wsTasks.length;
+    var pct = total===0 ? 0 : Math.round(done/total*100);
+    var color = WORKSTREAM_COLORS[ws];
+    return '<div class="card">' +
+      '<div class="ws-card-header"><span class="dot" style="background:'+color.dot+'"></span><p class="card-title">'+WORKSTREAM_LABELS[ws]+'</p></div>' +
+      '<p class="stat-big">'+pct+'%</p>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%;background:'+color.dot+'"></div></div>' +
+      '<p class="stat-sub">'+done+' / '+total+' 件完了</p>' +
+    '</div>';
+  }).join('');
+
+  var productDevTasks = tasks.filter(function(t){return t.workstream==='product-dev';});
+  var axisCards = PRODUCT_DEV_AXIS_ORDER.map(function(axis){
+    var axisTasks = productDevTasks.filter(function(t){return t.productDevAxis===axis;});
+    var done = axisTasks.filter(function(t){return t.status==='done';}).length;
+    return '<div class="stat-box">' +
+      '<p class="stat-box-label">'+PRODUCT_DEV_AXIS_LABELS[axis]+'</p>' +
+      '<p class="stat-box-value">'+axisTasks.length+'<span class="unit">件</span></p>' +
+      '<p class="stat-box-sub">完了 '+done+'件</p>' +
+    '</div>';
+  }).join('');
+
+  var upcoming = tasks.filter(function(t){return t.status!=='done' && t.dueDate;})
+    .sort(function(a,b){return a.dueDate<b.dueDate?-1:a.dueDate>b.dueDate?1:0;})
+    .slice(0,8);
+  var upcomingHtml;
+  if (upcoming.length===0){
+    upcomingHtml = '<p class="empty-note">期限が設定された未完了タスクはありません。</p>';
+  } else {
+    upcomingHtml = '<ul class="deadline-list">' + upcoming.map(function(t){
+      var overdue = isOverdue(t.dueDate);
+      var diff = daysUntil(t.dueDate);
+      return '<li class="deadline-item">' +
+        '<div><p class="deadline-title">'+escapeHtml(t.title)+'</p>' +
+        '<div class="deadline-tags">'+renderBadge(WORKSTREAM_LABELS[t.workstream], WORKSTREAM_COLORS[t.workstream])+renderBadge(TASK_PRIORITY_LABELS[t.priority], TASK_PRIORITY_COLORS[t.priority])+'<span class="muted-text">'+escapeHtml(getMemberName(t.assigneeId))+'</span></div></div>' +
+        '<div class="deadline-date '+(overdue?'overdue':'')+'">'+formatDateJP(t.dueDate)+(overdue?' <span class="overdue-note">('+Math.abs(diff)+'日超過)</span>':'')+'</div>' +
+      '</li>';
+    }).join('') + '</ul>';
+  }
+
+  return '<div class="page-header"><h1>ダッシュボード</h1><p class="page-desc">3つのワークストリームの進捗状況を一覧できます。</p></div>' +
+    '<div class="grid-3">'+workstreamCards+'</div>' +
+    '<div class="card section-gap"><p class="card-title">① 商品開発 — 3軸別タスク数</p><div class="grid-3" style="margin-top:12px;">'+axisCards+'</div></div>' +
+    '<div class="card section-gap"><p class="card-title">期限が近いタスク</p><p class="card-subtitle">未完了タスクを期限が近い順に表示しています</p>'+upcomingHtml+'</div>';
+}
+
+/* ============================== タスク管理 ============================== */
+function getFilteredTasks(){
+  return appData.tasks.filter(function(t){
+    if (ui.taskFilters.workstream && t.workstream !== ui.taskFilters.workstream) return false;
+    if (ui.taskFilters.assigneeId && t.assigneeId !== ui.taskFilters.assigneeId) return false;
+    if (ui.taskFilters.status && t.status !== ui.taskFilters.status) return false;
+    if (ui.taskFilters.dueBefore && (!t.dueDate || t.dueDate > ui.taskFilters.dueBefore)) return false;
+    return true;
+  });
+}
+function renderTasksPage(){
+  var filters = ui.taskFilters;
+  var hasActiveFilter = filters.workstream || filters.assigneeId || filters.status || filters.dueBefore;
+  var filterBar = '<div class="filter-bar">' +
+    '<div class="filter-field"><label class="filter-label">ワークストリーム</label><select class="input" data-action="filter-change" data-filter="workstream">' + optionsHtml(WORKSTREAM_ORDER.map(function(ws){return {value:ws,label:WORKSTREAM_LABELS[ws]};}), filters.workstream, 'すべて') + '</select></div>' +
+    '<div class="filter-field"><label class="filter-label">担当者</label><select class="input" data-action="filter-change" data-filter="assigneeId">' + optionsHtml(appData.members.map(function(m){return {value:m.id,label:m.name};}), filters.assigneeId, 'すべて') + '</select></div>' +
+    '<div class="filter-field"><label class="filter-label">ステータス</label><select class="input" data-action="filter-change" data-filter="status">' + optionsHtml(TASK_STATUS_ORDER.map(function(s){return {value:s,label:TASK_STATUS_LABELS[s]};}), filters.status, 'すべて') + '</select></div>' +
+    '<div class="filter-field"><label class="filter-label">期限(この日まで)</label><input type="date" class="input" data-action="filter-change" data-filter="dueBefore" value="'+escapeHtml(filters.dueBefore)+'"></div>' +
+    (hasActiveFilter ? '<button type="button" class="link-btn" data-action="clear-filters">フィルタをクリア</button>' : '') +
+  '</div>';
+
+  var filtered = getFilteredTasks();
+  var body = ui.taskViewMode === 'kanban' ? renderKanbanBoard(filtered) : renderTaskListTable(filtered);
+
+  return '<div class="page-header-row"><div><h1 style="font-size:20px;font-weight:700;">タスク管理</h1><p class="page-desc">かんばんとリスト表示を切り替えて進捗を管理できます。</p></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;">' +
+      '<div class="toggle-group">' +
+        '<button type="button" class="toggle-btn '+(ui.taskViewMode==='kanban'?'active':'')+'" data-action="task-view-mode" data-mode="kanban">かんばん</button>' +
+        '<button type="button" class="toggle-btn '+(ui.taskViewMode==='list'?'active':'')+'" data-action="task-view-mode" data-mode="list">リスト</button>' +
+      '</div>' +
+      '<button type="button" class="btn btn-primary" data-action="open-task-create">'+ICONS.plus+'タスクを追加</button>' +
+    '</div></div>' +
+    filterBar + body;
+}
+function renderKanbanBoard(tasks){
+  var columns = TASK_STATUS_ORDER.map(function(status){
+    var columnTasks = tasks.filter(function(t){return t.status===status;});
+    var color = TASK_STATUS_COLORS[status];
+    var cardsHtml = columnTasks.map(function(t){ return renderKanbanCard(t); }).join('');
+    if (columnTasks.length===0) cardsHtml = '<p class="empty-note" style="padding:16px 0;">タスクなし</p>';
+    return '<div class="kanban-column" data-status="'+status+'">' +
+      '<div class="kanban-column-header"><div class="kanban-column-title"><span class="dot" style="background:'+color.dot+'"></span>'+TASK_STATUS_LABELS[status]+'</div><span class="kanban-count">'+columnTasks.length+'</span></div>' +
+      cardsHtml +
+    '</div>';
+  }).join('');
+  return '<div class="kanban-board">' + columns + '</div>';
+}
+function renderKanbanCard(t){
+  var overdue = t.status!=='done' && isOverdue(t.dueDate);
+  var axisHtml = t.productDevAxis ? '<span class="muted-text">'+escapeHtml(PRODUCT_DEV_AXIS_LABELS[t.productDevAxis])+'</span>' : '';
+  return '<div class="kanban-card" draggable="true" data-task-id="'+t.id+'" data-action="open-task-edit">' +
+    '<div class="kanban-card-tags">'+renderBadge(WORKSTREAM_LABELS[t.workstream], WORKSTREAM_COLORS[t.workstream])+axisHtml+'</div>' +
+    '<p class="kanban-card-title">'+escapeHtml(t.title)+'</p>' +
+    (t.description ? '<p class="kanban-card-desc">'+escapeHtml(t.description)+'</p>' : '') +
+    '<div class="kanban-card-footer">'+renderBadge(TASK_PRIORITY_LABELS[t.priority], TASK_PRIORITY_COLORS[t.priority])+'<span class="muted-text">'+escapeHtml(getMemberName(t.assigneeId))+'</span></div>' +
+    (t.dueDate ? '<p class="kanban-card-due '+(overdue?'overdue':'')+'">期限: '+formatDateJP(t.dueDate)+'</p>' : '') +
+  '</div>';
+}
+function renderTaskListTable(tasks){
+  var rows = tasks.map(function(t){
+    var overdue = t.status!=='done' && isOverdue(t.dueDate);
+    return '<tr data-action="open-task-edit" data-task-id="'+t.id+'">' +
+      '<td class="cell-strong">'+escapeHtml(t.title)+'</td>' +
+      '<td>'+renderBadge(WORKSTREAM_LABELS[t.workstream], WORKSTREAM_COLORS[t.workstream])+'</td>' +
+      '<td>'+escapeHtml(getMemberName(t.assigneeId))+'</td>' +
+      '<td>'+renderBadge(TASK_STATUS_LABELS[t.status], TASK_STATUS_COLORS[t.status])+'</td>' +
+      '<td>'+renderBadge(TASK_PRIORITY_LABELS[t.priority], TASK_PRIORITY_COLORS[t.priority])+'</td>' +
+      '<td style="'+(overdue?'color:'+COLORS.red600+';font-weight:600;':'')+'">'+formatDateJP(t.dueDate)+'</td>' +
+    '</tr>';
+  }).join('');
+  if (tasks.length===0) rows = '<tr><td colspan="6" class="empty-note">該当するタスクがありません。</td></tr>';
+  return '<div class="table-wrap"><table><thead><tr><th>タイトル</th><th>ワークストリーム</th><th>担当者</th><th>ステータス</th><th>優先度</th><th>期限</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ============================== 商品カテゴリー評価 ============================== */
+function renderCategoriesPage(){
+  var categories = appData.productCategories;
+  var evaluations = {};
+  categories.forEach(function(c){
+    evaluations[c.id] = evaluateMarketEntry({genre:c.genre, marketSizeCategory:c.marketSizeCategory, topSharePercent:c.topSharePercent, topCompanyCount:c.topCompanyCount, hasProcessingConstraint:c.hasProcessingConstraint});
+  });
+  var sorted = categories.slice();
+  if (ui.categorySortMode === 'recommendation'){
+    sorted.sort(function(a,b){
+      var wd = RECOMMENDATION_SORT_WEIGHT[evaluations[b.id].recommendation] - RECOMMENDATION_SORT_WEIGHT[evaluations[a.id].recommendation];
+      if (wd !== 0) return wd;
+      var as = evaluations[a.id].totalScore === null ? -Infinity : evaluations[a.id].totalScore;
+      var bs = evaluations[b.id].totalScore === null ? -Infinity : evaluations[b.id].totalScore;
+      return bs - as;
+    });
+  } else {
+    sorted.sort(function(a,b){ return a.createdAt < b.createdAt ? -1 : 1; });
+  }
+
+  var rows = sorted.map(function(c){
+    var ev = evaluations[c.id];
+    return '<tr data-action="open-category-edit" data-category-id="'+c.id+'">' +
+      '<td class="cell-strong">'+escapeHtml(c.name)+'</td>' +
+      '<td>'+escapeHtml(c.genre)+'</td>' +
+      '<td>'+escapeHtml(c.marketSizeCategory || '未設定')+'</td>' +
+      '<td>'+(c.topSharePercent!==undefined ? c.topSharePercent+'%' : '未調査')+'</td>' +
+      '<td>'+(c.topCompanyCount!==undefined ? c.topCompanyCount+'社' : '-')+'</td>' +
+      '<td>'+(c.hasProcessingConstraint ? 'あり' : 'なし')+'</td>' +
+      '<td>'+renderBadge(c.status, CATEGORY_STATUS_COLORS[c.status])+'</td>' +
+      '<td>'+renderBadge(ev.recommendation, RECOMMENDATION_COLORS[ev.recommendation])+'</td>' +
+    '</tr>';
+  }).join('');
+  if (sorted.length===0) rows = '<tr><td colspan="8" class="empty-note">登録されている商品カテゴリーがありません。</td></tr>';
+
+  var table = '<div class="table-wrap"><table><thead><tr><th>名称</th><th>ジャンル</th><th>市場規模</th><th>トップシェア</th><th>上位社数</th><th>加工拠点制約</th><th>ステータス</th><th>参入推奨度</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+
+  var referenceHtml = '<div class="card"><p class="card-title">参考: 主要市場規模データ</p><p class="card-subtitle">会議で共有された市場規模の参考値(GMS=流通総額ベース)</p>' +
+    '<ul class="reference-list">' + marketSizeReferences.map(function(r){
+      return '<li><span class="rlabel">'+escapeHtml(r.label)+'</span><span class="rvalue">約'+r.oku+'億円'+(r.note?'<span class="rnote">('+escapeHtml(r.note)+')</span>':'')+'</span></li>';
+    }).join('') + '</ul>' +
+    '<div class="benchmark-notes">' + marketSizeBenchmarkNotes.map(function(n){ return '<p>・'+escapeHtml(n)+'</p>'; }).join('') + '</div>' +
+  '</div>';
+
+  return '<div class="page-header-row"><div><h1 style="font-size:20px;font-weight:700;">商品カテゴリー評価</h1><p class="page-desc">市場選定基準にもとづき、参入推奨度を自動判定します。</p></div>' +
+    '<button type="button" class="btn btn-primary" data-action="open-category-create">'+ICONS.plus+'カテゴリーを追加</button></div>' +
+    renderBubbleChart(categories, evaluations) +
+    '<div class="grid-2" style="grid-template-columns:2fr 1fr;align-items:start;margin-top:24px;">' +
+      '<div>' +
+        '<div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:12px;"><span class="muted-text" style="font-size:12px;">並び順</span><div style="width:180px;"><select class="input" data-action="category-sort"><option value="recommendation"'+(ui.categorySortMode==='recommendation'?' selected':'')+'>推奨度が高い順</option><option value="created"'+(ui.categorySortMode==='created'?' selected':'')+'>登録順</option></select></div></div>' +
+        table +
+      '</div>' +
+      referenceHtml +
+    '</div>';
+}
+function renderBubbleChart(categories, evaluations){
+  var plottable = categories.filter(function(c){ return c.topSharePercent!==undefined && c.marketSizeOku!==undefined && c.marketSizeCategory!==undefined; });
+  var inner;
+  if (plottable.length === 0){
+    inner = '<p class="empty-note">トップシェア%・市場規模(億円・区分)を入力した候補が登録されると、ここにバブルチャートが表示されます。</p>';
+  } else {
+    var width = 640, height = 340, padL = 55, padR = 20, padT = 20, padB = 44;
+    var maxShare = Math.max.apply(null, plottable.map(function(c){return c.topSharePercent;}).concat([10])) + 5;
+    var maxSize = Math.max.apply(null, plottable.map(function(c){return c.marketSizeOku;}).concat([100])) * 1.15;
+    var maxCompanies = Math.max.apply(null, plottable.map(function(c){return c.topCompanyCount||1;}).concat([1]));
+    function xScale(v){ return padL + (v/maxShare) * (width-padL-padR); }
+    function yScale(v){ return height - padB - (v/maxSize) * (height-padT-padB); }
+    function rScale(v){ return 6 + (v/maxCompanies) * 16; }
+
+    var xTicks = [];
+    for (var i=0;i<=4;i++){ var xv = Math.round(maxShare/4*i); xTicks.push(xv); }
+    var yTicks = [];
+    for (var j=0;j<=4;j++){ var yv = Math.round(maxSize/4*j); yTicks.push(yv); }
+
+    var gridHtml = xTicks.map(function(xv){
+      return '<line x1="'+xScale(xv)+'" y1="'+padT+'" x2="'+xScale(xv)+'" y2="'+(height-padB)+'" stroke="#e2e8f0" stroke-width="1"/>' +
+        '<text x="'+xScale(xv)+'" y="'+(height-padB+16)+'" font-size="10" fill="#64748b" text-anchor="middle">'+xv+'%</text>';
+    }).join('') + yTicks.map(function(yv){
+      return '<line x1="'+padL+'" y1="'+yScale(yv)+'" x2="'+(width-padR)+'" y2="'+yScale(yv)+'" stroke="#e2e8f0" stroke-width="1"/>' +
+        '<text x="'+(padL-8)+'" y="'+(yScale(yv)+3)+'" font-size="10" fill="#64748b" text-anchor="end">'+yv+'</text>';
+    }).join('');
+
+    var pointsHtml = plottable.map(function(c){
+      var ev = evaluations[c.id];
+      var color = RECOMMENDATION_HEX[ev.recommendation];
+      var tooltip = escapeHtml(c.name) + ': シェア' + c.topSharePercent + '% / 市場規模' + c.marketSizeOku + '億円 / 上位' + (c.topCompanyCount||'-') + '社 / 推奨度' + ev.recommendation;
+      return '<circle cx="'+xScale(c.topSharePercent)+'" cy="'+yScale(c.marketSizeOku)+'" r="'+rScale(c.topCompanyCount||1)+'" fill="'+color+'" fill-opacity="0.7" stroke="'+color+'" stroke-width="1.5"><title>'+tooltip+'</title></circle>';
+    }).join('');
+
+    var axisLabels = '<text x="'+(width/2)+'" y="'+(height-6)+'" font-size="11" fill="#475569" text-anchor="middle">トップシェア(%)</text>' +
+      '<text x="14" y="'+(height/2)+'" font-size="11" fill="#475569" text-anchor="middle" transform="rotate(-90 14 '+(height/2)+')">市場規模(億円)</text>';
+
+    inner = '<div class="bubble-chart-wrap"><svg viewBox="0 0 '+width+' '+height+'" style="width:100%;height:auto;max-width:'+width+'px;">' +
+      gridHtml + pointsHtml + axisLabels +
+    '</svg></div>' +
+    '<div class="bubble-legend">' + RECOMMENDATION_CHART_ORDER.map(function(level){
+      return '<span class="bubble-legend-item"><span class="bubble-legend-dot" style="background:'+RECOMMENDATION_HEX[level]+'"></span>'+level+'</span>';
+    }).join('') + '</div>';
+  }
+  return '<div class="card"><p class="card-title">市場規模 × トップシェア バブルチャート</p><p class="card-subtitle">横軸:トップシェア% / 縦軸:市場規模(億円) / バブルの大きさ:上位社数</p>'+inner+'</div>';
+}
+
+/* ============================== 会議・議事録メモ ============================== */
+function renderMeetingsPage(){
+  var sorted = appData.meetings.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+  var cardsHtml;
+  if (sorted.length===0){
+    cardsHtml = '<p class="empty-note" style="border:1px dashed #e2e8f0;border-radius:12px;">会議はまだ登録されていません。</p>';
+  } else {
+    cardsHtml = sorted.map(function(m){
+      var decisionsHtml = m.decisions.length===0 ? '<p class="muted-text">決定事項はありません。</p>' :
+        '<ul class="decision-list">'+m.decisions.map(function(d){ return '<li class="decision-item"><span class="decision-bullet"></span>'+escapeHtml(d)+'</li>'; }).join('')+'</ul>';
+      var nextActionsHtml = m.nextActions.length===0 ? '<p class="muted-text">ネクストアクションはありません。</p>' :
+        m.nextActions.map(function(na){
+          var actionBtn = na.linkedTaskId ?
+            '<span class="task-ify-done">タスク化済み</span>' :
+            '<button type="button" class="task-ify-btn" data-action="task-from-next-action" data-meeting-id="'+m.id+'" data-next-action-id="'+na.id+'">'+ICONS.clipboard+'タスク化</button>';
+          return '<div class="next-action-item">' +
+            '<button type="button" class="next-action-text-btn" data-action="toggle-next-action" data-meeting-id="'+m.id+'" data-next-action-id="'+na.id+'">' +
+              '<span class="check-icon" style="color:'+(na.done?COLORS.emerald500:'#cbd5e1')+'">'+(na.done?ICONS.checkCircle:ICONS.circle)+'</span>' +
+              '<span class="next-action-text '+(na.done?'done':'')+'">'+escapeHtml(na.text)+'</span>' +
+            '</button>' + actionBtn +
+          '</div>';
+        }).join('');
+      return '<div class="card meeting-card">' +
+        '<div class="card-header-row"><div><p class="meeting-date">'+formatDateLongJP(m.date)+'</p><p class="meeting-title">'+escapeHtml(m.title)+'</p>' +
+        (m.participants.length>0 ? '<p class="meeting-participants">参加者: '+escapeHtml(m.participants.join('、'))+'</p>' : '') + '</div>' +
+        '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="open-meeting-edit" data-meeting-id="'+m.id+'">編集</button></div>' +
+        '<div style="margin-bottom:16px;"><p class="section-label">決定事項</p>'+decisionsHtml+'</div>' +
+        '<div><p class="section-label">ネクストアクション</p>'+nextActionsHtml+'</div>' +
+      '</div>';
+    }).join('');
+  }
+  return '<div class="page-header-row"><div><h1 style="font-size:20px;font-weight:700;">会議・議事録メモ</h1><p class="page-desc">決定事項とネクストアクションを記録し、タスク化できます。</p></div>' +
+    '<button type="button" class="btn btn-primary" data-action="open-meeting-create">'+ICONS.plus+'会議を追加</button></div>' +
+    cardsHtml;
+}
+
+/* ============================== データ管理 ============================== */
+function renderSettingsPage(){
+  var msg = '';
+  if (ui.dataMessage) msg = '<p class="'+(ui.dataMessage.type==='success'?'msg-success':'msg-error')+'">'+escapeHtml(ui.dataMessage.text)+'</p>';
+  return '<div class="page-header"><h1>データ管理</h1><p class="page-desc">データはこの端末のブラウザ内(localStorage)にのみ保存されます。他のメンバーと共有する場合は、JSONファイルの書き出し・読み込みをご利用ください。</p></div>' +
+    '<div class="card"><p class="card-title">現在のデータ件数</p><div class="grid-3" style="grid-template-columns:repeat(4,1fr);margin-top:12px;">' +
+      '<div class="stat-box"><p class="stat-box-label">メンバー</p><p class="stat-box-value">'+appData.members.length+'</p></div>' +
+      '<div class="stat-box"><p class="stat-box-label">タスク</p><p class="stat-box-value">'+appData.tasks.length+'</p></div>' +
+      '<div class="stat-box"><p class="stat-box-label">商品カテゴリー</p><p class="stat-box-value">'+appData.productCategories.length+'</p></div>' +
+      '<div class="stat-box"><p class="stat-box-label">会議</p><p class="stat-box-value">'+appData.meetings.length+'</p></div>' +
+    '</div></div>' +
+    '<div class="card section-gap"><p class="card-title">JSONエクスポート</p><p class="card-subtitle">現在のすべてのデータをJSONファイルとしてダウンロードします</p>' +
+      '<button type="button" class="btn btn-primary" style="margin-top:12px;" data-action="export-json">'+ICONS.download+'JSONをダウンロード</button></div>' +
+    '<div class="card section-gap"><p class="card-title">JSONインポート</p><p class="card-subtitle">他のメンバーが書き出したJSONファイルを読み込み、現在のデータを置き換えます</p>' +
+      '<div class="warn-box" style="margin-top:12px;">'+ICONS.alert+'<p>読み込むと、この端末に保存されている現在のデータは上書きされます。事前にエクスポートしてバックアップすることをおすすめします。</p></div>' +
+      '<button type="button" class="btn btn-secondary" data-action="import-json-trigger">'+ICONS.upload+'JSONファイルを選択</button></div>' +
+    msg;
+}
+
+/* ============================== モーダル: タスク ============================== */
+function renderTaskModal(){
+  var m = ui.taskModal;
+  var task = m.id ? appData.tasks.filter(function(t){return t.id===m.id;})[0] : null;
+  var v = task || {title:m.presetTitle||'', description:'', workstream:'product-dev', productDevAxis:'realtime', assigneeId:appData.members[0]?appData.members[0].id:'', status:'not-started', priority:'medium', dueDate:'', relatedCategoryId:''};
+  var isCreate = m.mode === 'create';
+  var axisFieldStyle = v.workstream === 'product-dev' ? '' : 'display:none;';
+  return '<div class="modal-overlay" data-action="close-modal" data-modal="task">' +
+    '<div class="modal">' +
+      '<div class="modal-header"><h2>'+(isCreate?'タスクを追加':'タスクを編集')+'</h2><button type="button" class="icon-btn" data-action="close-modal" data-modal="task">'+ICONS.close+'</button></div>' +
+      '<form id="task-form">' +
+        '<div class="field"><label class="label">タイトル *</label><input class="input" id="task-title" value="'+escapeHtml(v.title)+'" required></div>' +
+        '<div class="field"><label class="label">説明</label><textarea class="input" id="task-description" rows="3">'+escapeHtml(v.description)+'</textarea></div>' +
+        '<div class="field-row">' +
+          '<div><label class="label">ワークストリーム</label><select class="input" id="task-workstream" onchange="onTaskWorkstreamChange(this)">'+optionsHtml(WORKSTREAM_ORDER.map(function(ws){return {value:ws,label:WORKSTREAM_LABELS[ws]};}), v.workstream)+'</select></div>' +
+          '<div id="task-axis-field" style="'+axisFieldStyle+'"><label class="label">商品開発の軸</label><select class="input" id="task-axis">'+optionsHtml(PRODUCT_DEV_AXIS_ORDER.map(function(a){return {value:a,label:PRODUCT_DEV_AXIS_LABELS[a]};}), v.productDevAxis||'realtime')+'</select></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div><label class="label">担当者 *</label><select class="input" id="task-assignee" required>'+optionsHtml(appData.members.map(function(mm){return {value:mm.id,label:mm.name};}), v.assigneeId, '選択してください')+'</select></div>' +
+          '<div><label class="label">ステータス</label><select class="input" id="task-status">'+optionsHtml(TASK_STATUS_ORDER.map(function(s){return {value:s,label:TASK_STATUS_LABELS[s]};}), v.status)+'</select></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div><label class="label">優先度</label><select class="input" id="task-priority">'+optionsHtml(TASK_PRIORITY_ORDER.map(function(p){return {value:p,label:TASK_PRIORITY_LABELS[p]};}), v.priority)+'</select></div>' +
+          '<div><label class="label">期限</label><input type="date" class="input" id="task-due-date" value="'+escapeHtml(v.dueDate||'')+'"></div>' +
+        '</div>' +
+        '<div class="field"><label class="label">関連する商品カテゴリー</label><select class="input" id="task-related-category">'+optionsHtml(appData.productCategories.map(function(c){return {value:c.id,label:c.name};}), v.relatedCategoryId||'', 'なし')+'</select></div>' +
+        '<div class="modal-footer">' +
+          '<div>'+(!isCreate ? '<button type="button" class="btn btn-danger" data-action="delete-task" data-task-id="'+m.id+'">'+ICONS.trash+'削除</button>' : '')+'</div>' +
+          '<div class="modal-footer-right"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal="task">キャンセル</button><button type="submit" class="btn btn-primary">'+(isCreate?'追加する':'保存する')+'</button></div>' +
+        '</div>' +
+      '</form>' +
+    '</div>' +
+  '</div>';
+}
+function onTaskWorkstreamChange(select){
+  var field = document.getElementById('task-axis-field');
+  if (!field) return;
+  field.style.display = select.value === 'product-dev' ? '' : 'none';
+}
+
+/* ============================== モーダル: 商品カテゴリー ============================== */
+function renderCategoryModal(){
+  var m = ui.categoryModal;
+  var cat = m.id ? appData.productCategories.filter(function(c){return c.id===m.id;})[0] : null;
+  var v = cat || {name:'', genre:'米・雑穀', status:'調査中', marketSizeCategory:'', marketSizeOku:'', hasProcessingConstraint:false, topSharePercent:'', topCompanyCount:'', memo:''};
+  var isCreate = m.mode === 'create';
+  return '<div class="modal-overlay" data-action="close-modal" data-modal="category">' +
+    '<div class="modal modal-wide">' +
+      '<div class="modal-header"><h2>'+(isCreate?'商品カテゴリーを追加':'商品カテゴリーを編集')+'</h2><button type="button" class="icon-btn" data-action="close-modal" data-modal="category">'+ICONS.close+'</button></div>' +
+      '<form id="category-form">' +
+        '<div class="field"><label class="label">名称 *</label><input class="input" id="category-name" value="'+escapeHtml(v.name)+'" required></div>' +
+        '<div class="field-row">' +
+          '<div><label class="label">ジャンル</label><select class="input" id="category-genre" oninput="onCategoryFieldChange()" onchange="onCategoryFieldChange()">'+optionsHtml(PRODUCT_GENRE_ORDER.map(function(g){return {value:g,label:g};}), v.genre)+'</select></div>' +
+          '<div><label class="label">ステータス</label><select class="input" id="category-status">'+optionsHtml(CATEGORY_STATUS_ORDER.map(function(s){return {value:s,label:s};}), v.status)+'</select></div>' +
+        '</div>' +
+        '<div class="field-row-3">' +
+          '<div><label class="label">市場規模区分</label><select class="input" id="category-market-size-cat" onchange="onCategoryFieldChange()">'+optionsHtml(MARKET_SIZE_CATEGORY_ORDER.map(function(mc){return {value:mc,label:mc};}), v.marketSizeCategory||'', '未設定(未調査)')+'</select></div>' +
+          '<div><label class="label">市場規模(億円・任意)</label><input type="number" min="0" step="1" class="input" id="category-market-size-oku" value="'+escapeHtml(v.marketSizeOku!==undefined&&v.marketSizeOku!==null?v.marketSizeOku:'')+'" placeholder="例: 100"></div>' +
+          '<div><label class="label">加工拠点の制約</label><select class="input" id="category-constraint" onchange="onCategoryFieldChange()"><option value="no"'+(!v.hasProcessingConstraint?' selected':'')+'>なし</option><option value="yes"'+(v.hasProcessingConstraint?' selected':'')+'>あり(遠隔原料調達)</option></select></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div><label class="label">トップシェア%(任意)</label><input type="number" min="0" max="100" step="0.1" class="input" id="category-top-share" value="'+escapeHtml(v.topSharePercent!==undefined&&v.topSharePercent!==null?v.topSharePercent:'')+'" placeholder="例: 8" oninput="onCategoryFieldChange()"></div>' +
+          '<div><label class="label">上位社数(任意)</label><input type="number" min="0" step="1" class="input" id="category-top-companies" value="'+escapeHtml(v.topCompanyCount!==undefined&&v.topCompanyCount!==null?v.topCompanyCount:'')+'" placeholder="例: 7" oninput="onCategoryFieldChange()"></div>' +
+        '</div>' +
+        '<div class="field"><label class="label">メモ</label><textarea class="input" id="category-memo" rows="3">'+escapeHtml(v.memo)+'</textarea></div>' +
+        '<div class="preview-box" id="category-preview"></div>' +
+        '<div class="modal-footer">' +
+          '<div>'+(!isCreate ? '<button type="button" class="btn btn-danger" data-action="delete-category" data-category-id="'+m.id+'">'+ICONS.trash+'削除</button>' : '')+'</div>' +
+          '<div class="modal-footer-right"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal="category">キャンセル</button><button type="submit" class="btn btn-primary">'+(isCreate?'追加する':'保存する')+'</button></div>' +
+        '</div>' +
+      '</form>' +
+    '</div>' +
+  '</div>';
+}
+function readCategoryFormDraft(){
+  var shareRaw = document.getElementById('category-top-share').value;
+  var companiesRaw = document.getElementById('category-top-companies').value;
+  var sizeCat = document.getElementById('category-market-size-cat').value;
+  return {
+    genre: document.getElementById('category-genre').value,
+    marketSizeCategory: sizeCat || undefined,
+    topSharePercent: shareRaw === '' ? undefined : Number(shareRaw),
+    topCompanyCount: companiesRaw === '' ? undefined : Number(companiesRaw),
+    hasProcessingConstraint: document.getElementById('category-constraint').value === 'yes'
+  };
+}
+function onCategoryFieldChange(){
+  var preview = document.getElementById('category-preview');
+  if (!preview) return;
+  var draft = readCategoryFormDraft();
+  var result = evaluateMarketEntry(draft);
+  var scoreHtml = result.totalScore !== null ? '<p class="preview-score">合計スコア: '+result.totalScore+'点</p>' : '';
+  var reasonsHtml = '<ul class="preview-reasons">' + result.reasons.map(function(r){ return '<li>・'+escapeHtml(r)+'</li>'; }).join('') + '</ul>';
+  preview.innerHTML = '<div class="preview-header"><p>参入推奨度プレビュー</p>'+renderBadge(result.recommendation, RECOMMENDATION_COLORS[result.recommendation])+'</div>'+scoreHtml+reasonsHtml;
+}
+
+/* ============================== モーダル: 会議 ============================== */
+function renderMeetingModal(){
+  var m = ui.meetingModal;
+  var meeting = m.id ? appData.meetings.filter(function(x){return x.id===m.id;})[0] : null;
+  var v = meeting || {date:todayISO(), title:'', participants:[], decisions:[], nextActions:[]};
+  var isCreate = m.mode === 'create';
+  var rowsHtml = v.nextActions.map(function(na){ return renderNextActionRow(na); }).join('');
+  return '<div class="modal-overlay" data-action="close-modal" data-modal="meeting">' +
+    '<div class="modal modal-wide">' +
+      '<div class="modal-header"><h2>'+(isCreate?'会議を追加':'会議を編集')+'</h2><button type="button" class="icon-btn" data-action="close-modal" data-modal="meeting">'+ICONS.close+'</button></div>' +
+      '<form id="meeting-form">' +
+        '<div class="field-row">' +
+          '<div><label class="label">日付 *</label><input type="date" class="input" id="meeting-date" value="'+escapeHtml(v.date)+'" required></div>' +
+          '<div><label class="label">タイトル *</label><input class="input" id="meeting-title" value="'+escapeHtml(v.title)+'" required></div>' +
+        '</div>' +
+        '<div class="field"><label class="label">参加者(読点・カンマ区切り)</label><input class="input" id="meeting-participants" value="'+escapeHtml(v.participants.join('、'))+'" placeholder="例: 梅田さん、倉岡さん"></div>' +
+        '<div class="field"><label class="label">決定事項(1行に1件)</label><textarea class="input" id="meeting-decisions" rows="4">'+escapeHtml(v.decisions.join('\n'))+'</textarea></div>' +
+        '<div class="field">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><label class="label" style="margin-bottom:0;">ネクストアクション</label><button type="button" class="link-btn" style="padding-bottom:0;" onclick="addNextActionRow()">'+ICONS.plus+' 追加</button></div>' +
+          '<div id="next-actions-list">'+rowsHtml+'</div>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+          '<div>'+(!isCreate ? '<button type="button" class="btn btn-danger" data-action="delete-meeting" data-meeting-id="'+m.id+'">'+ICONS.trash+'削除</button>' : '')+'</div>' +
+          '<div class="modal-footer-right"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal="meeting">キャンセル</button><button type="submit" class="btn btn-primary">'+(isCreate?'追加する':'保存する')+'</button></div>' +
+        '</div>' +
+      '</form>' +
+    '</div>' +
+  '</div>';
+}
+function renderNextActionRow(na){
+  na = na || {id:'', text:'', done:false, linkedTaskId:''};
+  return '<div class="next-action-row" data-na-id="'+escapeHtml(na.id)+'" data-na-done="'+(!!na.done)+'" data-na-linked="'+escapeHtml(na.linkedTaskId||'')+'">' +
+    '<input type="text" class="input na-text" value="'+escapeHtml(na.text)+'" placeholder="ネクストアクションの内容">' +
+    '<button type="button" class="icon-btn" data-action="remove-next-action-row">'+ICONS.close+'</button>' +
+  '</div>';
+}
+function addNextActionRow(){
+  var list = document.getElementById('next-actions-list');
+  if (!list) return;
+  list.insertAdjacentHTML('beforeend', renderNextActionRow(null));
+}
+
+/* ============================== イベント処理 ============================== */
+function openTaskCreate(presetTitle, presetWorkstream, fromNextAction){
+  ui.taskModal = {mode:'create', id:null, presetTitle:presetTitle||'', presetWorkstream:presetWorkstream, fromNextAction:fromNextAction||null};
+  render();
+}
+function openTaskEdit(id){
+  ui.taskModal = {mode:'edit', id:id};
+  render();
+}
+function closeTaskModal(){ ui.taskModal = null; render(); }
+
+function openCategoryCreate(){ ui.categoryModal = {mode:'create', id:null}; render(); }
+function openCategoryEdit(id){ ui.categoryModal = {mode:'edit', id:id}; render(); }
+function closeCategoryModal(){ ui.categoryModal = null; render(); }
+
+function openMeetingCreate(){ ui.meetingModal = {mode:'create', id:null}; render(); }
+function openMeetingEdit(id){ ui.meetingModal = {mode:'edit', id:id}; render(); }
+function closeMeetingModal(){ ui.meetingModal = null; render(); }
+
+function handleTaskFormSubmit(form){
+  var title = form.querySelector('#task-title').value.trim();
+  var assigneeId = form.querySelector('#task-assignee').value;
+  if (!title || !assigneeId) return;
+  var workstream = form.querySelector('#task-workstream').value;
+  var productDevAxis = workstream === 'product-dev' ? form.querySelector('#task-axis').value : undefined;
+  var input = {
+    title: title,
+    description: form.querySelector('#task-description').value.trim(),
+    workstream: workstream,
+    productDevAxis: productDevAxis,
+    assigneeId: assigneeId,
+    status: form.querySelector('#task-status').value,
+    priority: form.querySelector('#task-priority').value,
+    dueDate: form.querySelector('#task-due-date').value || null,
+    relatedCategoryId: form.querySelector('#task-related-category').value || undefined
+  };
+  var m = ui.taskModal;
+  if (m.mode === 'create'){
+    addTask(input, m.fromNextAction);
+  } else {
+    updateTask(m.id, input);
+  }
+  ui.taskModal = null;
+  render();
+}
+function handleCategoryFormSubmit(form){
+  var name = form.querySelector('#category-name').value.trim();
+  if (!name) return;
+  var draft = readCategoryFormDraft();
+  var input = {
+    name: name,
+    genre: draft.genre,
+    status: form.querySelector('#category-status').value,
+    marketSizeCategory: draft.marketSizeCategory,
+    marketSizeOku: (function(){ var raw = form.querySelector('#category-market-size-oku').value; return raw === '' ? undefined : Number(raw); })(),
+    hasProcessingConstraint: draft.hasProcessingConstraint,
+    topSharePercent: draft.topSharePercent,
+    topCompanyCount: draft.topCompanyCount,
+    memo: form.querySelector('#category-memo').value.trim()
+  };
+  var m = ui.categoryModal;
+  if (m.mode === 'create') addCategory(input); else updateCategory(m.id, input);
+  ui.categoryModal = null;
+  render();
+}
+function handleMeetingFormSubmit(form){
+  var date = form.querySelector('#meeting-date').value;
+  var title = form.querySelector('#meeting-title').value.trim();
+  if (!date || !title) return;
+  var participants = form.querySelector('#meeting-participants').value.split(/[,、]/).map(function(s){return s.trim();}).filter(Boolean);
+  var decisions = form.querySelector('#meeting-decisions').value.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  var nextActions = [];
+  form.querySelectorAll('.next-action-row').forEach(function(row){
+    var text = row.querySelector('.na-text').value.trim();
+    if (!text) return;
+    nextActions.push({
+      id: row.dataset.naId || createId('next-action'),
+      text: text,
+      done: row.dataset.naDone === 'true',
+      linkedTaskId: row.dataset.naLinked || undefined
+    });
+  });
+  var input = {date:date, title:title, participants:participants, decisions:decisions, nextActions:nextActions};
+  var m = ui.meetingModal;
+  if (m.mode === 'create') addMeeting(input); else updateMeeting(m.id, input);
+  ui.meetingModal = null;
+  render();
+}
+
+document.addEventListener('submit', function(e){
+  if (e.target.id === 'task-form'){ e.preventDefault(); handleTaskFormSubmit(e.target); }
+  else if (e.target.id === 'category-form'){ e.preventDefault(); handleCategoryFormSubmit(e.target); }
+  else if (e.target.id === 'meeting-form'){ e.preventDefault(); handleMeetingFormSubmit(e.target); }
+});
+
+document.addEventListener('change', function(e){
+  var el = e.target.closest('[data-action]');
+  if (!el) return;
+  var action = el.dataset.action;
+  if (action === 'filter-change'){
+    ui.taskFilters[el.dataset.filter] = el.value;
+    render();
+  } else if (action === 'category-sort'){
+    ui.categorySortMode = el.value;
+    render();
+  }
+});
+
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]');
+  if (!el) return;
+  var action = el.dataset.action;
+
+  if (action === 'nav'){ ui.page = el.dataset.page; render(); }
+  else if (action === 'task-view-mode'){ ui.taskViewMode = el.dataset.mode; render(); }
+  else if (action === 'clear-filters'){ ui.taskFilters = {workstream:'', assigneeId:'', status:'', dueBefore:''}; render(); }
+  else if (action === 'open-task-create'){ openTaskCreate(); }
+  else if (action === 'open-task-edit'){ openTaskEdit(el.dataset.taskId); }
+  else if (action === 'delete-task'){ deleteTask(el.dataset.taskId); ui.taskModal = null; render(); }
+  else if (action === 'open-category-create'){ openCategoryCreate(); }
+  else if (action === 'open-category-edit'){ openCategoryEdit(el.dataset.categoryId); }
+  else if (action === 'delete-category'){ deleteCategory(el.dataset.categoryId); ui.categoryModal = null; render(); }
+  else if (action === 'open-meeting-create'){ openMeetingCreate(); }
+  else if (action === 'open-meeting-edit'){ openMeetingEdit(el.dataset.meetingId); }
+  else if (action === 'delete-meeting'){ deleteMeeting(el.dataset.meetingId); ui.meetingModal = null; render(); }
+  else if (action === 'toggle-next-action'){ toggleNextAction(el.dataset.meetingId, el.dataset.nextActionId); render(); }
+  else if (action === 'task-from-next-action'){
+    var meeting = appData.meetings.filter(function(x){return x.id===el.dataset.meetingId;})[0];
+    var na = meeting ? meeting.nextActions.filter(function(n){return n.id===el.dataset.nextActionId;})[0] : null;
+    if (na) openTaskCreate(na.text, 'product-dev', {meetingId:el.dataset.meetingId, nextActionId:el.dataset.nextActionId});
+  }
+  else if (action === 'close-modal'){
+    /* オーバーレイ自体(背景)がマッチした場合は、実際にクリックされたのが
+       背景そのものの時だけ閉じる(モーダル内部の余白クリックで誤って
+       閉じないようにするため)。X/キャンセルボタンは直接マッチするので無条件で閉じる。 */
+    if (el.classList.contains('modal-overlay') && e.target !== el) return;
+    var which = el.dataset.modal;
+    if (which === 'task') closeTaskModal();
+    else if (which === 'category') closeCategoryModal();
+    else if (which === 'meeting') closeMeetingModal();
+  }
+  else if (action === 'export-json'){
+    downloadDataAsJson();
+    ui.dataMessage = {type:'success', text:'JSONファイルを書き出しました。'};
+    render();
+  }
+  else if (action === 'import-json-trigger'){
+    document.getElementById('import-file-input').click();
+  }
+  else if (action === 'remove-next-action-row'){
+    var row = el.closest('.next-action-row');
+    if (row) row.remove();
+  }
+});
+
+document.getElementById('import-file-input').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  var confirmed = window.confirm('現在保存されているすべてのデータ(タスク・メンバー・カテゴリー・会議)が、選択したファイルの内容で上書きされます。よろしいですか?');
+  if (!confirmed) return;
+  readDataFromJsonFile(file).then(function(data){
+    appData.members = data.members; appData.tasks = data.tasks;
+    appData.productCategories = data.productCategories; appData.meetings = data.meetings;
+    saveData();
+    ui.dataMessage = {type:'success', text:'「'+file.name+'」を読み込み、データを置き換えました。'};
+    render();
+  }).catch(function(err){
+    ui.dataMessage = {type:'error', text: err.message || '読み込みに失敗しました。'};
+    render();
+  });
+});
+
+/* ============================== かんばん: ネイティブドラッグ&ドロップ ============================== */
+document.addEventListener('dragstart', function(e){
+  var card = e.target.closest('.kanban-card');
+  if (card){
+    draggedTaskId = card.dataset.taskId;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.dataset.taskId);
+  }
+});
+document.addEventListener('dragend', function(e){
+  var card = e.target.closest('.kanban-card');
+  if (card) card.classList.remove('dragging');
+  document.querySelectorAll('.kanban-column.drag-over').forEach(function(c){ c.classList.remove('drag-over'); });
+  draggedTaskId = null;
+});
+document.addEventListener('dragover', function(e){
+  var column = e.target.closest('.kanban-column');
+  if (column){ e.preventDefault(); column.classList.add('drag-over'); }
+});
+document.addEventListener('dragleave', function(e){
+  var column = e.target.closest('.kanban-column');
+  if (column && !column.contains(e.relatedTarget)) column.classList.remove('drag-over');
+});
+document.addEventListener('drop', function(e){
+  var column = e.target.closest('.kanban-column');
+  if (column){
+    e.preventDefault();
+    var taskId = draggedTaskId || e.dataTransfer.getData('text/plain');
+    if (taskId) updateTask(taskId, {status: column.dataset.status});
+  }
+  document.querySelectorAll('.kanban-column.drag-over').forEach(function(c){ c.classList.remove('drag-over'); });
+  draggedTaskId = null;
+  render();
+});
+
+/* ============================== 起動 ============================== */
+render();
+initSharePointSync();
+</script>
+</body>
+</html>
