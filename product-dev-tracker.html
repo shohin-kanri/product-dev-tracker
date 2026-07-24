@@ -20,7 +20,10 @@ h1,h2,h3,p{margin:0;}
 button{font-family:inherit;}
 .app-shell{display:flex;min-height:100vh;}
 .sidebar{width:240px;flex-shrink:0;background:#fff;border-right:1px solid var(--slate-200);display:flex;flex-direction:column;}
-.sidebar-header{display:flex;align-items:center;gap:10px;padding:20px;border-bottom:1px solid var(--slate-200);}
+.sidebar-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px;border-bottom:1px solid var(--slate-200);}
+.mobile-topbar{display:none;}
+.mobile-close-btn{display:none;}
+.mobile-nav-backdrop{display:none;}
 .sidebar-logo{width:36px;height:36px;border-radius:8px;background:var(--brand-500);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
 .sidebar-title{font-size:14px;font-weight:600;color:var(--slate-800);margin:0;}
 .sidebar-subtitle{font-size:11px;color:var(--slate-400);margin:2px 0 0;}
@@ -51,8 +54,9 @@ button{font-family:inherit;}
 
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
-@media (max-width:900px){.grid-3{grid-template-columns:1fr;}}
-@media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media (max-width:900px){.grid-3{grid-template-columns:1fr;}.overview-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:640px){.grid-2{grid-template-columns:1fr;}.overview-grid{grid-template-columns:1fr;}}
 
 .section-gap{margin-top:24px;}
 .ws-card-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
@@ -259,6 +263,29 @@ tbody tr:hover{background:var(--slate-50);}
 .bubble-legend-dot{width:10px;height:10px;border-radius:999px;display:inline-block;}
 
 .sync-status-badge{position:fixed;top:16px;right:20px;z-index:60;margin:0;padding:4px 12px;font-size:12px;font-weight:500;color:var(--slate-600);background:#fff;border:1px solid var(--slate-200);border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,0.06);}
+
+@media (max-width:860px){
+  .mobile-topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--slate-200);position:sticky;top:0;z-index:80;}
+  .mobile-topbar-title{font-size:14px;font-weight:600;color:var(--slate-800);}
+  .app-shell{flex-direction:column;min-height:auto;}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:100;transform:translateX(-100%);transition:transform 0.2s ease;box-shadow:2px 0 16px rgba(0,0,0,0.15);}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .mobile-close-btn{display:inline-flex;}
+  .mobile-nav-backdrop.show{display:block;position:fixed;inset:0;background:rgba(15,23,42,0.4);z-index:90;}
+  .main-content{width:100%;}
+  .page-container{padding:18px 14px;}
+  .field-row, .field-row-3{grid-template-columns:1fr;}
+  .sync-status-badge{top:auto;bottom:12px;right:12px;font-size:11px;}
+  .modal{padding:18px;}
+  .drilldown-grid{grid-template-columns:1fr;}
+  .drilldown-col{border-right:none;border-bottom:1px solid var(--slate-200);max-height:280px;}
+}
+@media (max-width:480px){
+  .page-header-title-row{gap:10px;}
+  .icon-badge{width:32px !important;height:32px !important;}
+  .icon-badge svg{width:16px;height:16px;}
+  .page-header h1{font-size:17px;}
+}
 .sync-status-badge:empty{display:none;}
 </style>
 </head>
@@ -794,7 +821,8 @@ var ui = {
   goalModal: null,
   oku25Filter: {genre:'', status:'', search:''},
   oku25ItemModal: null,
-  oku25GenreModal: null
+  oku25GenreModal: null,
+  mobileNavOpen: false
 };
 var draggedTaskId = null;
 
@@ -1057,7 +1085,8 @@ var ICONS = {
   upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
   clipboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>',
   package:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><line x1="10" y1="12" x2="14" y2="12"/></svg>',
-  trendingUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>'
+  trendingUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>',
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
 };
 function renderIconBadge(icon, colorKey, size){
   size = size || 40;
@@ -1073,7 +1102,12 @@ function renderPageHeaderTitle(icon, colorKey, title, desc){
 /* ============================== ページ全体レンダリング ============================== */
 function render(){
   var root = document.getElementById('app');
-  root.innerHTML = '<div class="app-shell">' + renderSidebar() + '<main class="main-content"><div class="page-container">' + renderPage() + '</div></main></div>' + renderModals() +
+  root.innerHTML = '<div class="app-shell">' +
+      '<div class="mobile-topbar"><button type="button" class="icon-btn mobile-menu-btn" data-action="toggle-mobile-nav">'+ICONS.menu+'</button><p class="mobile-topbar-title">商品管理部 MDプロジェクト</p></div>' +
+      '<div class="mobile-nav-backdrop'+(ui.mobileNavOpen?' show':'')+'" data-action="close-mobile-nav"></div>' +
+      renderSidebar() +
+      '<main class="main-content"><div class="page-container">' + renderPage() + '</div></main>' +
+    '</div>' + renderModals() +
     '<p id="sync-status" class="sync-status-badge"></p>';
   if (ui.categoryModal) onCategoryFieldChange();
   if (ui.grossProfitModal) onGrossProfitFieldChange();
@@ -1094,8 +1128,8 @@ function renderSidebar(){
   var navHtml = items.map(function(item){
     return '<button type="button" class="nav-item ' + (ui.page===item.id?'active':'') + '" data-action="nav" data-page="'+item.id+'">'+item.icon+'<span>'+item.label+'</span></button>';
   }).join('');
-  return '<aside class="sidebar">' +
-    '<div class="sidebar-header"><p class="sidebar-title">商品管理部 MDプロジェクト</p></div>' +
+  return '<aside class="sidebar'+(ui.mobileNavOpen?' mobile-open':'')+'">' +
+    '<div class="sidebar-header"><p class="sidebar-title">商品管理部 MDプロジェクト</p><button type="button" class="icon-btn mobile-close-btn" data-action="close-mobile-nav">'+ICONS.close+'</button></div>' +
     renderWorkstreamTabs() +
     '<nav class="sidebar-nav">' + navHtml + '</nav>' +
   '</aside>';
@@ -1254,7 +1288,7 @@ function renderProductOverviewStats(){
       (t.extra || '') +
     '</div>';
   }).join('');
-  return '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);">'+tilesHtml+'</div>';
+  return '<div class="overview-grid">'+tilesHtml+'</div>';
 }
 function renderReleasePipeline(activeAxis){
   var categoriesInAxis = appData.productCategories.filter(function(c){return c.productDevAxis===activeAxis;});
@@ -1431,7 +1465,7 @@ function renderGrossProfitTabContent(category, variant){
     costRowsHtml + feeRow +
     '<tr class="gp-cost-total-row"><td colspan="3">商品原価 合計</td><td>'+formatYen(calc.costTotal)+'</td></tr>' +
   '</tbody></table></div>';
-  var summaryHtml = '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);margin-top:12px;">' +
+  var summaryHtml = '<div class="overview-grid" style="margin-top:12px;">' +
     '<div class="stat-box"><p class="stat-box-label">売上</p><p class="stat-box-value" style="font-size:16px;">'+formatYen(calc.revenue)+'</p></div>' +
     '<div class="stat-box"><p class="stat-box-label">商品原価</p><p class="stat-box-value" style="font-size:16px;">'+formatYen(calc.costTotal)+'</p></div>' +
     '<div class="stat-box"><p class="stat-box-label">粗利</p><p class="stat-box-value" style="font-size:16px;">'+formatYen(calc.grossProfit)+'</p></div>' +
@@ -1800,7 +1834,7 @@ function renderOku25GenreOverview(){
       '</div>' +
     '</div>';
   }).join('');
-  return '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);">'+cardsHtml+'</div>';
+  return '<div class="overview-grid">'+cardsHtml+'</div>';
 }
 function onOku25GenreTargetChange(el){
   var raw = el.value;
@@ -2001,7 +2035,7 @@ function renderSettingsPage(){
   var msg = '';
   if (ui.dataMessage) msg = '<p class="'+(ui.dataMessage.type==='success'?'msg-success':'msg-error')+'">'+escapeHtml(ui.dataMessage.text)+'</p>';
   return '<div class="page-header">'+renderPageHeaderTitle(ICONS.settings, 'violet', 'データ管理', 'データはこの端末のブラウザ内(localStorage)にのみ保存されます。他のメンバーと共有する場合は、JSONファイルの書き出し・読み込みをご利用ください。')+'</div>' +
-    '<div class="card"><p class="card-title">現在のデータ件数</p><div class="grid-3" style="grid-template-columns:repeat(4,1fr);margin-top:12px;">' +
+    '<div class="card"><p class="card-title">現在のデータ件数</p><div class="overview-grid" style="margin-top:12px;">' +
       '<div class="stat-box"><p class="stat-box-label">メンバー</p><p class="stat-box-value">'+appData.members.length+'</p></div>' +
       '<div class="stat-box"><p class="stat-box-label">タスク</p><p class="stat-box-value">'+appData.tasks.length+'</p></div>' +
       '<div class="stat-box"><p class="stat-box-label">商品カテゴリー</p><p class="stat-box-value">'+appData.productCategories.length+'</p></div>' +
@@ -2236,7 +2270,7 @@ function onGrossProfitFieldChange(){
   var gp = readGrossProfitFormDraft();
   var calc = calcGrossProfitTable(gp);
   preview.innerHTML = '<div class="preview-header"><p>粗利表プレビュー</p></div>' +
-    '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);">' +
+    '<div class="overview-grid">' +
       '<div class="stat-box"><p class="stat-box-label">売上</p><p class="stat-box-value" style="font-size:15px;">'+formatYen(calc.revenue)+'</p></div>' +
       '<div class="stat-box"><p class="stat-box-label">商品原価</p><p class="stat-box-value" style="font-size:15px;">'+formatYen(calc.costTotal)+'</p></div>' +
       '<div class="stat-box"><p class="stat-box-label">粗利</p><p class="stat-box-value" style="font-size:15px;">'+formatYen(calc.grossProfit)+'</p></div>' +
@@ -2541,10 +2575,13 @@ document.addEventListener('click', function(e){
   if (!el) return;
   var action = el.dataset.action;
 
-  if (action === 'nav'){ ui.page = el.dataset.page; render(); }
+  if (action === 'nav'){ ui.page = el.dataset.page; ui.mobileNavOpen = false; render(); }
+  else if (action === 'toggle-mobile-nav'){ ui.mobileNavOpen = !ui.mobileNavOpen; render(); }
+  else if (action === 'close-mobile-nav'){ ui.mobileNavOpen = false; render(); }
   else if (action === 'select-workstream'){
     ui.activeWorkstream = el.dataset.workstream;
     if (ui.activeWorkstream === 'project-25oku' && (ui.page === 'tasks' || ui.page === 'categories')) ui.page = 'dashboard';
+    ui.mobileNavOpen = false;
     render();
   }
   else if (action === 'task-view-mode'){ ui.taskViewMode = el.dataset.mode; render(); }
