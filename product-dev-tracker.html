@@ -123,6 +123,10 @@ button{font-family:inherit;}
 .oku25-log-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .oku25-log-grid dt{font-size:11px;color:var(--slate-400);margin-bottom:2px;}
 .oku25-log-grid dd{margin:0;font-size:13px;color:var(--slate-800);}
+.oku25-item-row td{border-top:1px solid var(--slate-200);}
+.oku25-item-toggle svg{width:16px;height:16px;transition:transform 0.15s ease;}
+.oku25-item-toggle.collapsed svg{transform:rotate(-90deg);}
+.oku25-detail-panel{background:var(--slate-50);padding:14px 16px 14px 52px;}
 .cost-item-row .ci-label{flex:2;}
 .cost-item-row .ci-unit-price{flex:1;}
 .cost-item-row .ci-qty{flex:1;}
@@ -1088,7 +1092,9 @@ var ICONS = {
   clipboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>',
   package:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><line x1="10" y1="12" x2="14" y2="12"/></svg>',
   trendingUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>',
-  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
+  chevronDown:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>'
 };
 function renderIconBadge(icon, colorKey, size){
   size = size || 40;
@@ -1131,7 +1137,7 @@ function renderSidebar(){
     return '<button type="button" class="nav-item ' + (ui.page===item.id?'active':'') + '" data-action="nav" data-page="'+item.id+'">'+item.icon+'<span>'+item.label+'</span></button>';
   }).join('');
   return '<aside class="sidebar'+(ui.mobileNavOpen?' mobile-open':'')+'">' +
-    '<div class="sidebar-header"><p class="sidebar-title">商品管理部 MDプロジェクト</p><button type="button" class="icon-btn mobile-close-btn" data-action="close-mobile-nav">'+ICONS.close+'</button></div>' +
+    '<div class="sidebar-header"><p class="sidebar-title">商品管理部<br>MDプロジェクト</p><button type="button" class="icon-btn mobile-close-btn" data-action="close-mobile-nav">'+ICONS.close+'</button></div>' +
     renderWorkstreamTabs() +
     '<nav class="sidebar-nav">' + navHtml + '</nav>' +
   '</aside>';
@@ -1876,24 +1882,22 @@ function renderOku25Section(){
     var it = x.item;
     var color = OKU25_STATUS_COLORS[it.status] || OKU25_STATUS_COLORS['未着手'];
     var isCollapsed = !!ui.oku25Collapsed[it.id];
-    var mainRow = '<tr>' +
+    var mainRow = '<tr class="oku25-item-row">' +
+      '<td style="width:36px;padding-right:0;"><button type="button" class="icon-btn oku25-item-toggle'+(isCollapsed?' collapsed':'')+'" data-action="toggle-oku25-detail" data-oku25-id="'+it.id+'" title="'+(isCollapsed?'詳細を表示':'詳細を非表示')+'">'+ICONS.chevronDown+'</button></td>' +
       '<td class="cell-strong">No.'+x.no+'</td>' +
       '<td>'+(it.genre?escapeHtml(it.genre):'<span class="muted-text">未設定</span>')+'</td>' +
       '<td>'+(it.productName?escapeHtml(it.productName):'<span class="muted-text">未設定</span>')+'</td>' +
       '<td>'+(it.assigneeId?escapeHtml(getMemberName(it.assigneeId)):'<span class="muted-text">未割当</span>')+'</td>' +
       '<td>'+formatYen(it.annualRevenueTarget)+'</td>' +
       '<td>'+renderBadge(it.status||'未着手', color)+'</td>' +
-      '<td style="white-space:nowrap;text-align:right;">' +
-        '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="toggle-oku25-detail" data-oku25-id="'+it.id+'">'+(isCollapsed?'▶ 表示':'▼ 非表示')+'</button> ' +
-        '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="open-oku25-edit" data-oku25-id="'+it.id+'">編集</button>' +
-      '</td>' +
+      '<td style="width:36px;padding-left:0;text-align:right;"><button type="button" class="icon-btn" data-action="open-oku25-edit" data-oku25-id="'+it.id+'" title="編集">'+ICONS.edit+'</button></td>' +
     '</tr>';
-    var detailRow = isCollapsed ? '' : '<tr><td colspan="7" style="padding:0;">'+renderOku25DetailPanel(it)+'</td></tr>';
+    var detailRow = isCollapsed ? '' : '<tr><td colspan="8" style="padding:0;">'+renderOku25DetailPanel(it)+'</td></tr>';
     return mainRow + detailRow;
   }).join('');
-  if (filtered.length===0) rows = '<tr><td colspan="7" class="empty-note">該当する案件がありません。</td></tr>';
+  if (filtered.length===0) rows = '<tr><td colspan="8" class="empty-note">該当する案件がありません。</td></tr>';
 
-  var table = '<div class="table-wrap"><table><thead><tr><th>ID</th><th>ジャンル</th><th>商品名</th><th>担当者</th><th>年間売上目標</th><th>ステータス</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  var table = '<div class="table-wrap"><table><thead><tr><th></th><th>ID</th><th>ジャンル</th><th>商品名</th><th>担当者</th><th>年間売上目標</th><th>ステータス</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 
   return '<div class="card section-gap">' +
     '<div class="card-header-row" style="align-items:flex-start;">' +
@@ -1915,7 +1919,7 @@ function renderOku25DetailPanel(it){
   var tabDefs = [{key:'info', label:'入力内容'}, {key:'logs', label:'定期フォローログ ('+logs.length+')'}];
   var tabsHtml = tabDefs.map(function(t){
     var isActive = tab === t.key;
-    return '<button type="button" class="spec-tab'+(isActive?' active':'')+'" data-action="oku25-detail-tab" data-oku25-id="'+it.id+'" data-tab="'+t.key+'">'+t.label+'</button>';
+    return '<button type="button" class="toggle-btn'+(isActive?' active':'')+'" data-action="oku25-detail-tab" data-oku25-id="'+it.id+'" data-tab="'+t.key+'">'+t.label+'</button>';
   }).join('');
 
   var bodyHtml;
@@ -1935,17 +1939,16 @@ function renderOku25DetailPanel(it){
       }).join('');
   } else {
     bodyHtml = '<dl class="spec-detail-grid">' +
-        '<div><dt>ジャンル</dt><dd>'+(it.genre?escapeHtml(it.genre):'未設定')+'</dd></div>' +
         '<div><dt>商品名</dt><dd>'+(it.productName?escapeHtml(it.productName):'未設定')+'</dd></div>' +
         '<div><dt>担当者</dt><dd>'+(it.assigneeId?escapeHtml(getMemberName(it.assigneeId)):'未割当')+'</dd></div>' +
-        '<div><dt>ステータス</dt><dd>'+escapeHtml(it.status||'未着手')+'</dd></div>' +
         '<div><dt>年間売上目標</dt><dd>'+formatYen(it.annualRevenueTarget)+'</dd></div>' +
+        '<div><dt>ステータス</dt><dd>'+escapeHtml(it.status||'未着手')+'</dd></div>' +
       '</dl>' +
       '<div class="field" style="margin-bottom:0;"><label class="label">タスク</label><p class="spec-detail-note">'+(it.task?escapeHtml(it.task):'<span class="muted-text">未設定</span>')+'</p></div>';
   }
 
-  return '<div style="background:var(--slate-50);border-top:1px solid var(--slate-100);padding:16px 16px 16px 40px;">' +
-      '<div class="spec-tabs">'+tabsHtml+'</div>' +
+  return '<div class="oku25-detail-panel">' +
+      '<div class="toggle-group" style="display:inline-flex;margin-bottom:14px;">'+tabsHtml+'</div>' +
       bodyHtml +
     '</div>';
 }
