@@ -822,6 +822,8 @@ var ui = {
   oku25Filter: {genre:'', status:'', search:''},
   oku25ItemModal: null,
   oku25GenreModal: null,
+  oku25Collapsed: {},
+  oku25DetailTab: {},
   mobileNavOpen: false
 };
 var draggedTaskId = null;
@@ -1873,18 +1875,25 @@ function renderOku25Section(){
   var rows = filtered.map(function(x){
     var it = x.item;
     var color = OKU25_STATUS_COLORS[it.status] || OKU25_STATUS_COLORS['未着手'];
-    return '<tr data-action="open-oku25-edit" data-oku25-id="'+it.id+'">' +
+    var isCollapsed = !!ui.oku25Collapsed[it.id];
+    var mainRow = '<tr>' +
       '<td class="cell-strong">No.'+x.no+'</td>' +
       '<td>'+(it.genre?escapeHtml(it.genre):'<span class="muted-text">未設定</span>')+'</td>' +
       '<td>'+(it.productName?escapeHtml(it.productName):'<span class="muted-text">未設定</span>')+'</td>' +
       '<td>'+(it.assigneeId?escapeHtml(getMemberName(it.assigneeId)):'<span class="muted-text">未割当</span>')+'</td>' +
       '<td>'+formatYen(it.annualRevenueTarget)+'</td>' +
       '<td>'+renderBadge(it.status||'未着手', color)+'</td>' +
+      '<td style="white-space:nowrap;text-align:right;">' +
+        '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="toggle-oku25-detail" data-oku25-id="'+it.id+'">'+(isCollapsed?'▶ 表示':'▼ 非表示')+'</button> ' +
+        '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="open-oku25-edit" data-oku25-id="'+it.id+'">編集</button>' +
+      '</td>' +
     '</tr>';
+    var detailRow = isCollapsed ? '' : '<tr><td colspan="7" style="padding:0;">'+renderOku25DetailPanel(it)+'</td></tr>';
+    return mainRow + detailRow;
   }).join('');
-  if (filtered.length===0) rows = '<tr><td colspan="6" class="empty-note">該当する案件がありません。</td></tr>';
+  if (filtered.length===0) rows = '<tr><td colspan="7" class="empty-note">該当する案件がありません。</td></tr>';
 
-  var table = '<div class="table-wrap"><table><thead><tr><th>ID</th><th>ジャンル</th><th>商品名</th><th>担当者</th><th>年間売上目標</th><th>ステータス</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  var table = '<div class="table-wrap"><table><thead><tr><th>ID</th><th>ジャンル</th><th>商品名</th><th>担当者</th><th>年間売上目標</th><th>ステータス</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 
   return '<div class="card section-gap">' +
     '<div class="card-header-row" style="align-items:flex-start;">' +
@@ -1899,6 +1908,46 @@ function renderOku25Section(){
     '<div class="field" style="margin-top:12px;max-width:320px;"><input type="text" class="input" id="oku25-search" placeholder="ID・商品名・担当者で検索" value="'+escapeHtml(filter.search||'')+'" oninput="onOku25SearchChange(this.value)"></div>' +
     table +
   '</div>';
+}
+function renderOku25DetailPanel(it){
+  var tab = ui.oku25DetailTab[it.id] || 'info';
+  var logs = it.followLogs || [];
+  var tabDefs = [{key:'info', label:'入力内容'}, {key:'logs', label:'定期フォローログ ('+logs.length+')'}];
+  var tabsHtml = tabDefs.map(function(t){
+    var isActive = tab === t.key;
+    return '<button type="button" class="spec-tab'+(isActive?' active':'')+'" data-action="oku25-detail-tab" data-oku25-id="'+it.id+'" data-tab="'+t.key+'">'+t.label+'</button>';
+  }).join('');
+
+  var bodyHtml;
+  if (tab === 'logs'){
+    bodyHtml = logs.length === 0 ? '<p class="empty-note" style="padding:12px 0;">まだ記録がありません。</p>' :
+      logs.map(function(l){
+        return '<div class="oku25-log-card" style="background:#fff;">' +
+          '<div class="oku25-log-header"><span>'+formatDateLongJP(l.createdAt.slice(0,10))+'</span></div>' +
+          '<dl class="oku25-log-grid">' +
+            '<div><dt>記入者</dt><dd>'+(l.author?escapeHtml(l.author):'<span class="muted-text">未設定</span>')+'</dd></div>' +
+            '<div><dt>プロジェクトフェーズ</dt><dd>'+(l.phase?escapeHtml(l.phase):'<span class="muted-text">未設定</span>')+'</dd></div>' +
+            '<div><dt>今回の進捗</dt><dd>'+(l.progress?escapeHtml(l.progress):'<span class="muted-text">未設定</span>')+'</dd></div>' +
+            '<div><dt>現在の課題</dt><dd>'+(l.issue?escapeHtml(l.issue):'<span class="muted-text">未設定</span>')+'</dd></div>' +
+            '<div><dt>次回までにアクション</dt><dd>'+(l.nextAction?escapeHtml(l.nextAction):'<span class="muted-text">未設定</span>')+'</dd></div>' +
+          '</dl>' +
+        '</div>';
+      }).join('');
+  } else {
+    bodyHtml = '<dl class="spec-detail-grid">' +
+        '<div><dt>ジャンル</dt><dd>'+(it.genre?escapeHtml(it.genre):'未設定')+'</dd></div>' +
+        '<div><dt>商品名</dt><dd>'+(it.productName?escapeHtml(it.productName):'未設定')+'</dd></div>' +
+        '<div><dt>担当者</dt><dd>'+(it.assigneeId?escapeHtml(getMemberName(it.assigneeId)):'未割当')+'</dd></div>' +
+        '<div><dt>ステータス</dt><dd>'+escapeHtml(it.status||'未着手')+'</dd></div>' +
+        '<div><dt>年間売上目標</dt><dd>'+formatYen(it.annualRevenueTarget)+'</dd></div>' +
+      '</dl>' +
+      '<div class="field" style="margin-bottom:0;"><label class="label">タスク</label><p class="spec-detail-note">'+(it.task?escapeHtml(it.task):'<span class="muted-text">未設定</span>')+'</p></div>';
+  }
+
+  return '<div style="background:var(--slate-50);border-top:1px solid var(--slate-100);padding:16px 16px 16px 40px;">' +
+      '<div class="spec-tabs">'+tabsHtml+'</div>' +
+      bodyHtml +
+    '</div>';
 }
 function onOku25SearchChange(value){
   ui.oku25Filter.search = value;
@@ -2610,6 +2659,8 @@ document.addEventListener('click', function(e){
   else if (action === 'delete-goal'){ deleteGoal(el.dataset.goalId); render(); }
   else if (action === 'open-oku25-create'){ openOku25Create(); }
   else if (action === 'open-oku25-edit'){ openOku25Edit(el.dataset.oku25Id); }
+  else if (action === 'toggle-oku25-detail'){ var oku25ToggleId = el.dataset.oku25Id; ui.oku25Collapsed[oku25ToggleId] = !ui.oku25Collapsed[oku25ToggleId]; render(); }
+  else if (action === 'oku25-detail-tab'){ ui.oku25DetailTab[el.dataset.oku25Id] = el.dataset.tab; render(); }
   else if (action === 'delete-oku25-item'){ deleteOku25Item(el.dataset.oku25Id); ui.oku25ItemModal = null; render(); }
   else if (action === 'add-oku25-log'){
     var oku25ItemId = el.dataset.oku25Id;
