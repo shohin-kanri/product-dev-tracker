@@ -143,6 +143,14 @@ button{font-family:inherit;}
 
 .deadline-list{list-style:none;margin:0;padding:0;}
 .deadline-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--slate-100);}
+.related-doc-list{list-style:none;margin:0;padding:0;}
+.related-doc-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--slate-100);}
+.related-doc-icon{color:var(--slate-400);flex-shrink:0;display:flex;}
+.related-doc-icon svg{width:20px;height:20px;}
+.related-doc-body{flex:1;min-width:0;}
+.related-doc-title{color:var(--brand-700, #0086CC);font-weight:500;text-decoration:none;word-break:break-all;}
+.related-doc-title:hover{text-decoration:underline;}
+.related-doc-item:first-child{border-top:none;}
 .deadline-item:first-child{border-top:none;}
 .deadline-title{font-size:13px;font-weight:500;color:var(--slate-700);}
 .deadline-tags{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
@@ -160,6 +168,7 @@ button{font-family:inherit;}
 .btn-danger:hover{background:var(--red-50);}
 .icon-btn{border:none;background:none;color:var(--slate-400);cursor:pointer;padding:6px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;}
 .icon-btn:hover{background:var(--slate-100);color:var(--slate-600);}
+.icon-btn svg{width:16px;height:16px;flex-shrink:0;}
 
 .toggle-group{display:flex;border:1px solid var(--slate-300);border-radius:8px;padding:2px;background:#fff;}
 .toggle-btn{border:none;background:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;color:var(--slate-500);cursor:pointer;}
@@ -641,7 +650,7 @@ var seedMeetings = [
 /* ============================== データ永続化(localStorage) ============================== */
 var STORAGE_KEY = 'product-dev-tracker:data:v1';
 function seedAppData(){
-  return {members:seedMembers, tasks:seedTasks, productCategories:seedProductCategories, meetings:seedMeetings, genres:PRODUCT_GENRE_ORDER.slice(), goals:[], oku25Items:[], oku25Genres:PRODUCT_GENRE_ORDER.slice(), oku25GenreTargets:{}};
+  return {members:seedMembers, tasks:seedTasks, productCategories:seedProductCategories, meetings:seedMeetings, genres:PRODUCT_GENRE_ORDER.slice(), goals:[], oku25Items:[], oku25Genres:PRODUCT_GENRE_ORDER.slice(), oku25GenreTargets:{}, relatedDocs:{}};
 }
 function loadData(){
   var raw = localStorage.getItem(STORAGE_KEY);
@@ -661,7 +670,8 @@ function loadData(){
       goals: parsed.goals || [],
       oku25Items: parsed.oku25Items || [],
       oku25Genres: parsed.oku25Genres || PRODUCT_GENRE_ORDER.slice(),
-      oku25GenreTargets: parsed.oku25GenreTargets || {}
+      oku25GenreTargets: parsed.oku25GenreTargets || {},
+      relatedDocs: parsed.relatedDocs || {}
     };
   }catch(e){
     console.error('保存データの読み込みに失敗したため、初期データを使用します', e);
@@ -674,7 +684,8 @@ function saveData(){
       members: appData.members, tasks: appData.tasks,
       productCategories: appData.productCategories, meetings: appData.meetings,
       genres: appData.genres, goals: appData.goals,
-      oku25Items: appData.oku25Items, oku25Genres: appData.oku25Genres, oku25GenreTargets: appData.oku25GenreTargets
+      oku25Items: appData.oku25Items, oku25Genres: appData.oku25Genres, oku25GenreTargets: appData.oku25GenreTargets,
+      relatedDocs: appData.relatedDocs
     }));
   }catch(e){}
   if (spEnabled){
@@ -702,7 +713,7 @@ function setSyncStatus(state){
   el.textContent = map[state] || '';
 }
 function currentPayload(){
-  return {members: appData.members, tasks: appData.tasks, productCategories: appData.productCategories, meetings: appData.meetings, genres: appData.genres, goals: appData.goals, oku25Items: appData.oku25Items, oku25Genres: appData.oku25Genres, oku25GenreTargets: appData.oku25GenreTargets};
+  return {members: appData.members, tasks: appData.tasks, productCategories: appData.productCategories, meetings: appData.meetings, genres: appData.genres, goals: appData.goals, oku25Items: appData.oku25Items, oku25Genres: appData.oku25Genres, oku25GenreTargets: appData.oku25GenreTargets, relatedDocs: appData.relatedDocs};
 }
 function spFetchAll(){
   return fetch(SP_GET_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})})
@@ -727,6 +738,7 @@ function applyRemoteData(remoteData){
   appData.oku25Items = remoteData.oku25Items || [];
   appData.oku25Genres = remoteData.oku25Genres || PRODUCT_GENRE_ORDER.slice();
   appData.oku25GenreTargets = remoteData.oku25GenreTargets || {};
+  appData.relatedDocs = remoteData.relatedDocs || {};
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(currentPayload())); }catch(e){}
 }
 function initSharePointSync(){
@@ -766,7 +778,7 @@ function pollSharePoint(){
 function downloadDataAsJson(){
   var now = new Date();
   var stamp = [now.getFullYear(), now.getMonth()+1, now.getDate()].map(function(n){return String(n).padStart(2,'0');}).join('');
-  var payload = {members:appData.members, tasks:appData.tasks, productCategories:appData.productCategories, meetings:appData.meetings, genres:appData.genres, goals:appData.goals, oku25Items:appData.oku25Items, oku25Genres:appData.oku25Genres, oku25GenreTargets:appData.oku25GenreTargets};
+  var payload = {members:appData.members, tasks:appData.tasks, productCategories:appData.productCategories, meetings:appData.meetings, genres:appData.genres, goals:appData.goals, oku25Items:appData.oku25Items, oku25Genres:appData.oku25Genres, oku25GenreTargets:appData.oku25GenreTargets, relatedDocs:appData.relatedDocs};
   var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   var url = URL.createObjectURL(blob);
   var link = document.createElement('a');
@@ -828,6 +840,8 @@ var ui = {
   oku25GenreModal: null,
   oku25Collapsed: {},
   oku25DetailTab: {},
+  oku25LogModal: null,
+  relatedDocModal: null,
   mobileNavOpen: false
 };
 var draggedTaskId = null;
@@ -1004,6 +1018,14 @@ function addOku25Log(itemId, input){
   item.followLogs.unshift(Object.assign({}, input, {id:createId('oku25log'), createdAt:new Date().toISOString()}));
   saveData();
 }
+function updateOku25Log(itemId, logId, patch){
+  var item = appData.oku25Items.filter(function(x){return x.id===itemId;})[0];
+  if (!item || !item.followLogs) return;
+  var log = item.followLogs.filter(function(l){return l.id===logId;})[0];
+  if (!log) return;
+  Object.assign(log, patch);
+  saveData();
+}
 function deleteOku25Log(itemId, logId){
   var item = appData.oku25Items.filter(function(x){return x.id===itemId;})[0];
   if (!item || !item.followLogs) return;
@@ -1030,6 +1052,26 @@ function moveOku25Genre(index, direction){
 }
 function setOku25GenreTarget(genre, value){
   appData.oku25GenreTargets[genre] = value;
+  saveData();
+}
+function getRelatedDocs(workstream){
+  return appData.relatedDocs[workstream] || [];
+}
+function addRelatedDoc(workstream, input){
+  var doc = Object.assign({}, input, {id:createId('doc'), createdAt:new Date().toISOString()});
+  if (!appData.relatedDocs[workstream]) appData.relatedDocs[workstream] = [];
+  appData.relatedDocs[workstream].push(doc);
+  saveData();
+}
+function updateRelatedDoc(workstream, id, patch){
+  var doc = getRelatedDocs(workstream).filter(function(d){return d.id===id;})[0];
+  if (!doc) return;
+  Object.assign(doc, patch);
+  saveData();
+}
+function deleteRelatedDoc(workstream, id){
+  if (!appData.relatedDocs[workstream]) return;
+  appData.relatedDocs[workstream] = appData.relatedDocs[workstream].filter(function(d){return d.id!==id;});
   saveData();
 }
 function addMeeting(input){
@@ -1094,7 +1136,8 @@ var ICONS = {
   trendingUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>',
   menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
   chevronDown:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
-  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>'
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  fileText:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>'
 };
 function renderIconBadge(icon, colorKey, size){
   size = size || 40;
@@ -1173,6 +1216,8 @@ function renderModals(){
   if (ui.goalModal) html += renderGoalModal();
   if (ui.oku25ItemModal) html += renderOku25ItemModal();
   if (ui.oku25GenreModal) html += renderOku25GenreModal();
+  if (ui.oku25LogModal) html += renderOku25LogModal();
+  if (ui.relatedDocModal) html += renderRelatedDocModal();
   if (ui.meetingModal) html += renderMeetingModal();
   if (ui.variantModal) html += renderVariantModal();
   return html;
@@ -1246,12 +1291,40 @@ function renderDashboard(){
     upcomingSection = '<div class="card section-gap"><p class="card-title">期限が近いタスク</p><p class="card-subtitle">未完了タスクを期限が近い順に表示しています</p>'+upcomingHtml+'</div>';
   }
 
+  var relatedDocsSection = '';
+  if (activeWs === 'product-dev' || activeWs === 'project-25oku'){
+    relatedDocsSection = renderRelatedDocsSection(activeWs);
+  }
+
   return '<div class="page-header">'+renderPageHeaderTitle(ICONS.dashboard, 'brand', WORKSTREAM_LABELS[activeWs]+' ダッシュボード', 'このプロジェクトの進捗状況を確認できます。')+'</div>' +
+    relatedDocsSection +
     progressCard +
     axisSection +
     axisDrilldownSection +
     pipelineSection +
     upcomingSection;
+}
+function renderRelatedDocsSection(workstream){
+  var docs = getRelatedDocs(workstream);
+  var listHtml = docs.length === 0 ? '<p class="empty-note">まだ資料が登録されていません。</p>' :
+    '<ul class="related-doc-list">' + docs.map(function(d){
+      return '<li class="related-doc-item">' +
+        '<div class="related-doc-icon">'+ICONS.fileText+'</div>' +
+        '<div class="related-doc-body">' +
+          '<a href="'+escapeHtml(d.url)+'" target="_blank" rel="noopener noreferrer" class="related-doc-title">'+escapeHtml(d.title)+'</a>' +
+        '</div>' +
+        '<div style="display:flex;gap:4px;">' +
+          '<button type="button" class="icon-btn" data-action="open-related-doc-edit" data-workstream="'+workstream+'" data-doc-id="'+d.id+'" title="編集">'+ICONS.edit+'</button>' +
+          '<button type="button" class="icon-btn" data-action="delete-related-doc" data-workstream="'+workstream+'" data-doc-id="'+d.id+'" title="削除">'+ICONS.trash+'</button>' +
+        '</div>' +
+      '</li>';
+    }).join('') + '</ul>';
+  return '<div class="card section-gap" style="margin-bottom:24px;">' +
+    '<div class="card-header-row"><div><p class="card-title">関連資料</p><p class="card-subtitle">PowerPointなど関連資料へのリンクを管理します</p></div>' +
+      '<button type="button" class="btn btn-secondary" data-action="open-related-doc-create" data-workstream="'+workstream+'">'+ICONS.plus+'資料を追加</button>' +
+    '</div>' +
+    listHtml +
+  '</div>';
 }
 function renderProductOverviewStats(){
   var totalCount = countAllVariants();
@@ -1783,7 +1856,7 @@ function renderOku25GoalsPage(){
     return '<div class="card section-gap">' +
       '<div class="card-header-row"><p class="card-title">'+escapeHtml(g)+'</p></div>' +
       '<div class="field" style="max-width:320px;margin-bottom:0;"><label class="label">年間売上目標(円)</label>' +
-        '<input type="number" min="0" step="1" class="input" data-genre="'+escapeHtml(g)+'" value="'+(val!==undefined?val:'')+'" placeholder="未設定" onchange="onOku25GenreTargetChange(this)"></div>' +
+        '<input type="text" inputmode="numeric" class="input" data-genre="'+escapeHtml(g)+'" value="'+(val!==undefined?val.toLocaleString():'')+'" placeholder="未設定" oninput="onOku25GenreTargetInput(this)" onchange="onOku25GenreTargetChange(this)"></div>' +
     '</div>';
   }).join('');
   return '<div class="page-header">'+renderPageHeaderTitle(ICONS.goals, 'red', '目標・KPI管理', 'ジャンルごとの年間売上目標を設定します。ここで入力した内容がダッシュボードに反映されます。')+'</div>' +
@@ -1844,9 +1917,13 @@ function renderOku25GenreOverview(){
   }).join('');
   return '<div class="overview-grid">'+cardsHtml+'</div>';
 }
+function onOku25GenreTargetInput(el){
+  var digits = el.value.replace(/[^\d]/g,'');
+  el.value = digits === '' ? '' : Number(digits).toLocaleString();
+}
 function onOku25GenreTargetChange(el){
-  var raw = el.value;
-  setOku25GenreTarget(el.dataset.genre, raw === '' ? undefined : Number(raw));
+  var raw = toNumberOrUndefined(el.value);
+  setOku25GenreTarget(el.dataset.genre, raw);
   render();
 }
 function renderOku25Section(){
@@ -1907,8 +1984,10 @@ function renderOku25Section(){
         '<button type="button" class="btn btn-primary" data-action="open-oku25-create">'+ICONS.plus+'新規案件を追加</button>' +
       '</div>' +
     '</div>' +
-    '<div class="chip-row" style="margin-top:12px;">'+genreChips+'</div>' +
-    '<div class="chip-row" style="margin-top:6px;">'+statusChips+'</div>' +
+    '<div class="chip-row" style="margin-top:12px;align-items:center;">'+
+      '<span class="label" style="display:inline;margin:0 8px 0 0;white-space:nowrap;">ジャンル</span>'+genreChips+'</div>' +
+    '<div class="chip-row" style="margin-top:6px;align-items:center;">'+
+      '<span class="label" style="display:inline;margin:0 8px 0 0;white-space:nowrap;">ステータス</span>'+statusChips+'</div>' +
     '<div class="field" style="margin-top:12px;max-width:320px;"><input type="text" class="input" id="oku25-search" placeholder="ID・商品名・担当者で検索" value="'+escapeHtml(filter.search||'')+'" oninput="onOku25SearchChange(this.value)"></div>' +
     table +
   '</div>';
@@ -1924,10 +2003,16 @@ function renderOku25DetailPanel(it){
 
   var bodyHtml;
   if (tab === 'logs'){
-    bodyHtml = logs.length === 0 ? '<p class="empty-note" style="padding:12px 0;">まだ記録がありません。</p>' :
+    var addLogBtn = '<button type="button" class="btn btn-secondary" style="margin-bottom:12px;" data-action="open-oku25-log-create" data-oku25-id="'+it.id+'">'+ICONS.plus+'記録を追加</button>';
+    var logsHtml = logs.length === 0 ? '<p class="empty-note" style="padding:12px 0;">まだ記録がありません。</p>' :
       logs.map(function(l){
         return '<div class="oku25-log-card" style="background:#fff;">' +
-          '<div class="oku25-log-header"><span>'+formatDateLongJP(l.createdAt.slice(0,10))+'</span></div>' +
+          '<div class="oku25-log-header"><span>'+formatDateLongJP(l.createdAt.slice(0,10))+'</span>' +
+            '<div style="display:flex;gap:10px;">' +
+              '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="open-oku25-log-edit" data-oku25-id="'+it.id+'" data-log-id="'+l.id+'">編集</button>' +
+              '<button type="button" class="link-btn" style="padding-bottom:0;color:'+COLORS.red600+';" data-action="delete-oku25-log" data-oku25-id="'+it.id+'" data-log-id="'+l.id+'">削除</button>' +
+            '</div>' +
+          '</div>' +
           '<dl class="oku25-log-grid">' +
             '<div><dt>記入者</dt><dd>'+(l.author?escapeHtml(l.author):'<span class="muted-text">未設定</span>')+'</dd></div>' +
             '<div><dt>プロジェクトフェーズ</dt><dd>'+(l.phase?escapeHtml(l.phase):'<span class="muted-text">未設定</span>')+'</dd></div>' +
@@ -1937,6 +2022,7 @@ function renderOku25DetailPanel(it){
           '</dl>' +
         '</div>';
       }).join('');
+    bodyHtml = addLogBtn + logsHtml;
   } else {
     bodyHtml = '<dl class="spec-detail-grid">' +
         '<div><dt>商品名</dt><dd>'+(it.productName?escapeHtml(it.productName):'未設定')+'</dd></div>' +
@@ -1976,7 +2062,12 @@ function renderOku25ItemModal(){
     var logsHtml = logs.length === 0 ? '<p class="empty-note" style="padding:12px 0;">まだ記録がありません。</p>' :
       logs.map(function(l){
         return '<div class="oku25-log-card">' +
-          '<div class="oku25-log-header"><span>'+formatDateLongJP(l.createdAt.slice(0,10))+'</span><button type="button" class="link-btn" style="padding-bottom:0;color:'+COLORS.red600+';" data-action="delete-oku25-log" data-oku25-id="'+item.id+'" data-log-id="'+l.id+'">削除</button></div>' +
+          '<div class="oku25-log-header"><span>'+formatDateLongJP(l.createdAt.slice(0,10))+'</span>' +
+            '<div style="display:flex;gap:10px;">' +
+              '<button type="button" class="link-btn" style="padding-bottom:0;" data-action="open-oku25-log-edit" data-oku25-id="'+item.id+'" data-log-id="'+l.id+'">編集</button>' +
+              '<button type="button" class="link-btn" style="padding-bottom:0;color:'+COLORS.red600+';" data-action="delete-oku25-log" data-oku25-id="'+item.id+'" data-log-id="'+l.id+'">削除</button>' +
+            '</div>' +
+          '</div>' +
           '<dl class="oku25-log-grid">' +
             '<div><dt>記入者</dt><dd>'+(l.author?escapeHtml(l.author):'<span class="muted-text">未設定</span>')+'</dd></div>' +
             '<div><dt>プロジェクトフェーズ</dt><dd>'+(l.phase?escapeHtml(l.phase):'<span class="muted-text">未設定</span>')+'</dd></div>' +
@@ -1986,17 +2077,8 @@ function renderOku25ItemModal(){
           '</dl>' +
         '</div>';
       }).join('');
-    logSection = '<div class="field"><label class="label">記入者</label><input class="input" id="oku25-log-author"></div>' +
-      '<div class="field-row">' +
-        '<div><label class="label">プロジェクトフェーズ</label><input class="input" id="oku25-log-phase"></div>' +
-        '<div><label class="label">今回の進捗</label><input class="input" id="oku25-log-progress"></div>' +
-      '</div>' +
-      '<div class="field-row">' +
-        '<div><label class="label">現在の課題</label><input class="input" id="oku25-log-issue"></div>' +
-        '<div><label class="label">次回までにアクション</label><input class="input" id="oku25-log-next-action"></div>' +
-      '</div>' +
-      '<button type="button" class="btn btn-secondary" data-action="add-oku25-log" data-oku25-id="'+item.id+'">この内容で記録を追加</button>' +
-      '<div class="section-gap">'+logsHtml+'</div>';
+    logSection = '<button type="button" class="btn btn-secondary" style="margin-bottom:12px;" data-action="open-oku25-log-create" data-oku25-id="'+item.id+'">'+ICONS.plus+'記録を追加</button>' +
+      logsHtml;
   }
 
   return '<div class="modal-overlay" data-action="close-modal" data-modal="oku25item">' +
@@ -2063,6 +2145,79 @@ function renderOku25GenreModal(){
       '</div>' +
     '</div>' +
   '</div>';
+}
+function openOku25LogCreate(itemId){ ui.oku25LogModal = {mode:'create', itemId:itemId, logId:null}; render(); }
+function openOku25LogEdit(itemId, logId){ ui.oku25LogModal = {mode:'edit', itemId:itemId, logId:logId}; render(); }
+function closeOku25LogModal(){ ui.oku25LogModal = null; render(); }
+function renderOku25LogModal(){
+  var m = ui.oku25LogModal;
+  var item = appData.oku25Items.filter(function(x){return x.id===m.itemId;})[0];
+  var log = (m.logId && item && item.followLogs) ? item.followLogs.filter(function(l){return l.id===m.logId;})[0] : null;
+  var v = log || {author:'', phase:'', progress:'', issue:'', nextAction:''};
+  var isCreate = m.mode === 'create';
+  return '<div class="modal-overlay" data-action="close-modal" data-modal="oku25log">' +
+    '<div class="modal">' +
+      '<div class="modal-header"><h2>'+(isCreate?'定期フォローログを追加':'定期フォローログを編集')+' — '+escapeHtml(item?item.productName||'':'')+'</h2><button type="button" class="icon-btn" data-action="close-modal" data-modal="oku25log">'+ICONS.close+'</button></div>' +
+      '<form id="oku25-log-form">' +
+        '<div class="field"><label class="label">記入者</label><input class="input" id="oku25-log-modal-author" value="'+escapeHtml(v.author||'')+'"></div>' +
+        '<div class="field"><label class="label">プロジェクトフェーズ</label><input class="input" id="oku25-log-modal-phase" value="'+escapeHtml(v.phase||'')+'"></div>' +
+        '<div class="field"><label class="label">今回の進捗</label><textarea class="input" id="oku25-log-modal-progress" rows="2">'+escapeHtml(v.progress||'')+'</textarea></div>' +
+        '<div class="field"><label class="label">現在の課題</label><textarea class="input" id="oku25-log-modal-issue" rows="2">'+escapeHtml(v.issue||'')+'</textarea></div>' +
+        '<div class="field"><label class="label">次回までにアクション</label><textarea class="input" id="oku25-log-modal-next-action" rows="2">'+escapeHtml(v.nextAction||'')+'</textarea></div>' +
+        '<div class="modal-footer">' +
+          '<div>'+(!isCreate ? '<button type="button" class="btn btn-danger" data-action="delete-oku25-log" data-oku25-id="'+m.itemId+'" data-log-id="'+m.logId+'">'+ICONS.trash+'削除</button>' : '')+'</div>' +
+          '<div class="modal-footer-right"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal="oku25log">キャンセル</button><button type="submit" class="btn btn-primary">'+(isCreate?'追加する':'保存する')+'</button></div>' +
+        '</div>' +
+      '</form>' +
+    '</div>' +
+  '</div>';
+}
+function handleOku25LogFormSubmit(form){
+  var input = {
+    author: form.querySelector('#oku25-log-modal-author').value.trim(),
+    phase: form.querySelector('#oku25-log-modal-phase').value.trim(),
+    progress: form.querySelector('#oku25-log-modal-progress').value.trim(),
+    issue: form.querySelector('#oku25-log-modal-issue').value.trim(),
+    nextAction: form.querySelector('#oku25-log-modal-next-action').value.trim()
+  };
+  var m = ui.oku25LogModal;
+  if (m.mode === 'create') addOku25Log(m.itemId, input);
+  else updateOku25Log(m.itemId, m.logId, input);
+  ui.oku25LogModal = null;
+  render();
+}
+
+function openRelatedDocCreate(workstream){ ui.relatedDocModal = {mode:'create', workstream:workstream, docId:null}; render(); }
+function openRelatedDocEdit(workstream, docId){ ui.relatedDocModal = {mode:'edit', workstream:workstream, docId:docId}; render(); }
+function closeRelatedDocModal(){ ui.relatedDocModal = null; render(); }
+function renderRelatedDocModal(){
+  var m = ui.relatedDocModal;
+  var doc = m.docId ? getRelatedDocs(m.workstream).filter(function(d){return d.id===m.docId;})[0] : null;
+  var v = doc || {title:'', url:''};
+  var isCreate = m.mode === 'create';
+  return '<div class="modal-overlay" data-action="close-modal" data-modal="relateddoc">' +
+    '<div class="modal">' +
+      '<div class="modal-header"><h2>'+(isCreate?'関連資料を追加':'関連資料を編集')+'</h2><button type="button" class="icon-btn" data-action="close-modal" data-modal="relateddoc">'+ICONS.close+'</button></div>' +
+      '<form id="related-doc-form">' +
+        '<div class="field"><label class="label">資料名</label><input class="input" id="related-doc-modal-title" value="'+escapeHtml(v.title||'')+'" placeholder="例:商品開発企画書2026"></div>' +
+        '<div class="field"><label class="label">リンク(URL)</label><input class="input" id="related-doc-modal-url" value="'+escapeHtml(v.url||'')+'" placeholder="https://..."></div>' +
+        '<div class="modal-footer">' +
+          '<div>'+(!isCreate ? '<button type="button" class="btn btn-danger" data-action="delete-related-doc" data-workstream="'+m.workstream+'" data-doc-id="'+m.docId+'">'+ICONS.trash+'削除</button>' : '')+'</div>' +
+          '<div class="modal-footer-right"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal="relateddoc">キャンセル</button><button type="submit" class="btn btn-primary">'+(isCreate?'追加する':'保存する')+'</button></div>' +
+        '</div>' +
+      '</form>' +
+    '</div>' +
+  '</div>';
+}
+function handleRelatedDocFormSubmit(form){
+  var title = form.querySelector('#related-doc-modal-title').value.trim();
+  var url = form.querySelector('#related-doc-modal-url').value.trim();
+  if (!title || !url) return;
+  var m = ui.relatedDocModal;
+  if (m.mode === 'create') addRelatedDoc(m.workstream, {title:title, url:url});
+  else updateRelatedDoc(m.workstream, m.docId, {title:title, url:url});
+  ui.relatedDocModal = null;
+  render();
 }
 
 /* ============================== 担当者管理 ============================== */
@@ -2607,6 +2762,8 @@ document.addEventListener('submit', function(e){
   else if (e.target.id === 'competitor-form'){ e.preventDefault(); handleCompetitorFormSubmit(e.target); }
   else if (e.target.id === 'goal-form'){ e.preventDefault(); handleGoalFormSubmit(e.target); }
   else if (e.target.id === 'oku25-item-form'){ e.preventDefault(); handleOku25ItemFormSubmit(e.target); }
+  else if (e.target.id === 'oku25-log-form'){ e.preventDefault(); handleOku25LogFormSubmit(e.target); }
+  else if (e.target.id === 'related-doc-form'){ e.preventDefault(); handleRelatedDocFormSubmit(e.target); }
 });
 
 document.addEventListener('change', function(e){
@@ -2665,18 +2822,12 @@ document.addEventListener('click', function(e){
   else if (action === 'toggle-oku25-detail'){ var oku25ToggleId = el.dataset.oku25Id; ui.oku25Collapsed[oku25ToggleId] = !ui.oku25Collapsed[oku25ToggleId]; render(); }
   else if (action === 'oku25-detail-tab'){ ui.oku25DetailTab[el.dataset.oku25Id] = el.dataset.tab; render(); }
   else if (action === 'delete-oku25-item'){ deleteOku25Item(el.dataset.oku25Id); ui.oku25ItemModal = null; render(); }
-  else if (action === 'add-oku25-log'){
-    var oku25ItemId = el.dataset.oku25Id;
-    addOku25Log(oku25ItemId, {
-      author: document.getElementById('oku25-log-author').value.trim(),
-      phase: document.getElementById('oku25-log-phase').value.trim(),
-      progress: document.getElementById('oku25-log-progress').value.trim(),
-      issue: document.getElementById('oku25-log-issue').value.trim(),
-      nextAction: document.getElementById('oku25-log-next-action').value.trim()
-    });
-    render();
-  }
-  else if (action === 'delete-oku25-log'){ deleteOku25Log(el.dataset.oku25Id, el.dataset.logId); render(); }
+  else if (action === 'delete-oku25-log'){ deleteOku25Log(el.dataset.oku25Id, el.dataset.logId); ui.oku25LogModal = null; render(); }
+  else if (action === 'open-oku25-log-create'){ openOku25LogCreate(el.dataset.oku25Id); }
+  else if (action === 'open-oku25-log-edit'){ openOku25LogEdit(el.dataset.oku25Id, el.dataset.logId); }
+  else if (action === 'open-related-doc-create'){ openRelatedDocCreate(el.dataset.workstream); }
+  else if (action === 'open-related-doc-edit'){ openRelatedDocEdit(el.dataset.workstream, el.dataset.docId); }
+  else if (action === 'delete-related-doc'){ deleteRelatedDoc(el.dataset.workstream, el.dataset.docId); ui.relatedDocModal = null; render(); }
   else if (action === 'oku25-filter-all'){ ui.oku25Filter = {genre:'', status:'', search:ui.oku25Filter.search}; render(); }
   else if (action === 'oku25-filter-genre'){ ui.oku25Filter.genre = (ui.oku25Filter.genre===el.dataset.genre?'':el.dataset.genre); render(); }
   else if (action === 'oku25-filter-status'){ ui.oku25Filter.status = (ui.oku25Filter.status===el.dataset.status?'':el.dataset.status); render(); }
@@ -2730,6 +2881,8 @@ document.addEventListener('click', function(e){
     else if (which === 'goal') closeGoalModal();
     else if (which === 'oku25item') closeOku25ItemModal();
     else if (which === 'oku25genre') closeOku25GenreModal();
+    else if (which === 'oku25log') closeOku25LogModal();
+    else if (which === 'relateddoc') closeRelatedDocModal();
   }
   else if (action === 'export-json'){
     downloadDataAsJson();
@@ -2759,6 +2912,7 @@ document.getElementById('import-file-input').addEventListener('change', function
     appData.oku25Items = data.oku25Items || [];
     appData.oku25Genres = data.oku25Genres || PRODUCT_GENRE_ORDER.slice();
     appData.oku25GenreTargets = data.oku25GenreTargets || {};
+    appData.relatedDocs = data.relatedDocs || {};
     saveData();
     ui.dataMessage = {type:'success', text:'「'+file.name+'」を読み込み、データを置き換えました。'};
     render();
