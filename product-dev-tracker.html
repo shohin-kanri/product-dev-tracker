@@ -22,7 +22,6 @@ button{font-family:inherit;}
 .sidebar{width:240px;flex-shrink:0;background:#fff;border-right:1px solid var(--slate-200);display:flex;flex-direction:column;}
 .sidebar-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px;border-bottom:1px solid var(--slate-200);}
 .mobile-topbar{display:none;}
-.mobile-close-btn{display:none;}
 .mobile-nav-backdrop{display:none;}
 .sidebar-title{font-size:14px;font-weight:600;color:var(--slate-800);margin:0;}
 .sidebar-brand{display:flex;flex-direction:column;gap:10px;min-width:0;}
@@ -309,7 +308,6 @@ tbody tr:hover{background:var(--slate-50);}
   .app-shell{flex-direction:column;min-height:auto;}
   .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:100;transform:translateX(-100%);transition:transform 0.2s ease;box-shadow:2px 0 16px rgba(0,0,0,0.15);}
   .sidebar.mobile-open{transform:translateX(0);}
-  .mobile-close-btn{display:inline-flex;}
   .mobile-nav-backdrop.show{display:block;position:fixed;inset:0;background:rgba(15,23,42,0.4);z-index:90;}
   .main-content{width:100%;}
   .page-container{padding:18px 14px;}
@@ -1262,7 +1260,6 @@ function renderSidebar(){
         '<img class="sidebar-logo" src="'+LOGO_DATA_URI+'" alt="株式会社ローカル">' +
         '<p class="sidebar-title">商品管理部<br>MDプロジェクト</p>' +
       '</div>' +
-      '<button type="button" class="icon-btn mobile-close-btn" data-action="close-mobile-nav">'+ICONS.close+'</button>' +
     '</div>' +
     renderWorkstreamTabs() +
     '<nav class="sidebar-nav">' + navHtml + '</nav>' +
