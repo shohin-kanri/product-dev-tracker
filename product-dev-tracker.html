@@ -1639,15 +1639,14 @@ function renderSurveyMapSection(){
   if ((ui.surveySearch||'').trim()) aiTarget = {mode:'product', query:(ui.surveySearch||'').trim(), label:'品目'};
   else if (activePref) aiTarget = {mode:'pref', query:activePref, label:'都道府県'};
 
-  /* AI調査は未提供。ボタンは配置のみで押せない状態にし、開発中である旨を明示する。 */
-  var aiHtml = '';
-  if (aiTarget){
-    aiHtml = '<div class="ai-bar">' +
-      '<button type="button" class="btn btn-secondary" disabled>'+ICONS.sparkles+'AIで「'+escapeHtml(aiTarget.query)+'」を調査</button>' +
+  /* AI調査は未提供。バーは常時表示し、ボタンは押せない状態にして開発中である旨を明示する。
+     検索語が未入力のときは品目名を差し込めないため、ラベルを「AIで調査」とする。 */
+  var aiLabel = aiTarget ? 'AIで「'+escapeHtml(aiTarget.query)+'」を調査' : 'AIで調査';
+  var aiHtml = '<div class="ai-bar">' +
+      '<button type="button" class="btn btn-secondary" disabled>'+ICONS.sparkles+aiLabel+'</button>' +
       '<span class="dev-badge">開発中</span>' +
       '<span class="muted-text" style="font-size:12px;">この機能は開発中のため、現在ご利用いただけません。</span>' +
     '</div>';
-  }
 
   var detailHtml;
   if (activePref && !selected){
